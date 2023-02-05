@@ -1,0 +1,10 @@
+[package]
+name = "acre"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+axum = "0.6.4"
+tokio = { version = "1", features = ["full"] }
+tokio-stream = "0.1.11"
+futures = "0.3.26"

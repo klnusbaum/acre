@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Acre</title>
+    </head>
+    <body>
+        <ul id="list">
+        </ul>
+
+        <script>
+            const evtSource = new EventSource("/count");
+            evtSource.onmessage = (event) => {
+                const newItem = document.createElement("li");
+                newItem.textContent = `${event.data}`;
+                const list = document.getElementById("list");
+                list.appendChild(newItem);
+            };
+        </script>
+    </body>
+</html>
