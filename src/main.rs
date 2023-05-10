@@ -1,72 +1,101 @@
-use std::convert::Infallible;
-use std::sync::{Arc, Mutex};
-use std::time::Duration;
+use std::sync::Arc;
+
+use parking_lot::FairMutex;
 
 use axum::extract::State;
+use axum::http::StatusCode;
 use axum::response::sse::{Event, KeepAlive, Sse};
-use axum::response::Html;
-use axum::routing::get;
+use axum::response::{Html, Json};
+use axum::routing::{get, post};
 use axum::Router;
-use futures::stream::{self, Stream};
-use tokio_stream::StreamExt;
+use axum::{headers::ContentType, TypedHeader};
+use futures::stream::{Stream, StreamExt};
+use std::fmt::{self, Display};
+
+mod boardstate;
+use boardstate::{Board, BoardState, Change, Player};
+
+#[derive(Debug)]
+enum BoardChangeError {
+    SerializeJson,
+    Lagging,
+}
+
+impl Display for BoardChangeError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::SerializeJson => write!(f, "serializtion error"),
+            Self::Lagging => write!(f, "fell behind in updates"),
+        }
+    }
+}
+
+impl std::error::Error for BoardChangeError {}
 
 struct AppState {
-    counter: Mutex<Counter>,
+    board_state: FairMutex<BoardState>,
 }
 
-struct Counter {
-    count: u32,
-}
-
-impl Default for Counter {
-    fn default() -> Counter {
-        Counter { count: 0 }
+fn change_json(change: &Change) -> Result<Event, BoardChangeError> {
+    match serde_json::to_string(change) {
+        Ok(json) => Ok(Event::default().data(json)),
+        Err(_) => Err(BoardChangeError::SerializeJson),
     }
 }
 
-impl Counter {
-    fn next(&mut self) -> u32 {
-        let result = self.count;
-        self.count += 1;
-        return result;
-    }
-}
-
-async fn count(
+async fn board_updates(
     State(state): State<Arc<AppState>>,
-) -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
-    let stream = stream::repeat_with(move || {
-        let next_num = state.counter.lock().unwrap().next();
-        Event::default().data(format!("{}", next_num))
-    })
-    .map(Ok)
-    .throttle(Duration::from_secs(1));
-
-    Sse::new(stream).keep_alive(KeepAlive::default())
+) -> Sse<impl Stream<Item = Result<Event, BoardChangeError>>> {
+    let broadcast_stream = state
+        .board_state
+        .lock()
+        .subscribe()
+        .map(|change| match change {
+            Ok(c) => change_json(&c),
+            Err(_) => Err(BoardChangeError::Lagging),
+        });
+    Sse::new(broadcast_stream).keep_alive(KeepAlive::default())
 }
 
-async fn repeater() -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
-    let stream = stream::repeat_with(|| Event::default().data("hi!"))
-        .map(Ok)
-        .throttle(Duration::from_secs(1));
+async fn board(State(state): State<Arc<AppState>>) -> Json<Board> {
+    Json(state.board_state.lock().get_board())
+}
 
-    Sse::new(stream).keep_alive(KeepAlive::default())
+async fn change(State(state): State<Arc<AppState>>, Json(change): Json<Change>) -> StatusCode {
+    state.board_state.lock().change_pixel(change);
+    StatusCode::CREATED
+}
+
+async fn new_player(State(state): State<Arc<AppState>>, Json(player): Json<Player>) -> StatusCode {
+    state.board_state.lock().add_player(player);
+    StatusCode::CREATED
 }
 
 async fn index() -> Html<&'static str> {
     Html(include_str!("index.html"))
 }
 
+async fn script() -> (StatusCode, TypedHeader<ContentType>, &'static str) {
+    (
+        StatusCode::OK,
+        TypedHeader(ContentType::from(mime::TEXT_JAVASCRIPT)),
+        include_str!("script.js"),
+    )
+}
+
 #[tokio::main]
 async fn main() {
     let state = Arc::new(AppState {
-        counter: Mutex::new(Counter::default()),
+        board_state: FairMutex::new(BoardState::default()),
     });
 
     let app = Router::new()
         .route("/", get(index))
-        .route("/count", get(count))
-        .route("/repeat", get(repeater))
+        .route("/board_updates", get(board_updates))
+        .route("/board", get(board))
+        .route("/change", post(change))
+        .route("/new_player", post(new_player))
+        .route("/script.js", get(script))
         .with_state(state);
 
     axum::Server::bind(&"0.0.0.0:8080".parse().unwrap())

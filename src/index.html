@@ -4,17 +4,10 @@
         <title>Acre</title>
     </head>
     <body>
-        <ul id="list">
-        </ul>
+        <h1>hello</h1>
+        <canvas id="mainboard" width="1000" height="1000"></canvas>
 
-        <script>
-            const evtSource = new EventSource("/count");
-            evtSource.onmessage = (event) => {
-                const newItem = document.createElement("li");
-                newItem.textContent = `${event.data}`;
-                const list = document.getElementById("list");
-                list.appendChild(newItem);
-            };
+        <script type="text/javascript" src="script.js">
         </script>
     </body>
 </html>
