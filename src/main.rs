@@ -1,19 +1,19 @@
-use std::sync::Arc;
-
-use parking_lot::FairMutex;
-
-use axum::extract::State;
-use axum::http::StatusCode;
-use axum::response::sse::{Event, KeepAlive, Sse};
-use axum::response::{Html, Json};
-use axum::routing::{get, post};
-use axum::Router;
-use axum::{headers::ContentType, TypedHeader};
-use futures::stream::{Stream, StreamExt};
-use std::fmt::{self, Display};
-
 mod boardstate;
+
+use axum::{
+    extract::State,
+    http::StatusCode,
+    response::sse::{Event, KeepAlive, Sse},
+    response::Json,
+    routing::{get, post},
+    Router,
+};
 use boardstate::{Board, BoardState, Change, Player};
+use futures::stream::{Stream, StreamExt};
+use parking_lot::FairMutex;
+use std::fmt::{self, Display};
+use std::sync::Arc;
+use tower_http::services::ServeDir;
 
 #[derive(Debug)]
 enum BoardChangeError {
@@ -71,18 +71,6 @@ async fn new_player(State(state): State<Arc<AppState>>, Json(player): Json<Playe
     StatusCode::CREATED
 }
 
-async fn index() -> Html<&'static str> {
-    Html(include_str!("index.html"))
-}
-
-async fn script() -> (StatusCode, TypedHeader<ContentType>, &'static str) {
-    (
-        StatusCode::OK,
-        TypedHeader(ContentType::from(mime::TEXT_JAVASCRIPT)),
-        include_str!("script.js"),
-    )
-}
-
 #[tokio::main]
 async fn main() {
     let state = Arc::new(AppState {
@@ -90,12 +78,11 @@ async fn main() {
     });
 
     let app = Router::new()
-        .route("/", get(index))
+        .fallback_service(ServeDir::new("content"))
         .route("/board_updates", get(board_updates))
         .route("/board", get(board))
         .route("/change", post(change))
         .route("/new_player", post(new_player))
-        .route("/script.js", get(script))
         .with_state(state);
 
     axum::Server::bind(&"0.0.0.0:8080".parse().unwrap())
