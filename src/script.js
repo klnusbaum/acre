@@ -1,7 +1,9 @@
 "use strict";
 
-const CANVAS_SIZE = 1000;
-const PIXEL_SIZE = 10;
+const CANVAS_SIZE_PX = 1000;
+const SCENE_SIZE_AC = 100;
+const ACRE_SIZE_PX = 10;
+
 const COLORS = [
     "white",
     "silver",
@@ -25,20 +27,22 @@ function randomColor() {
     return COLORS[Math.floor(Math.random() * COLORS.length)];
 }
 
-function drawSquare(ctx, x, y, size, color) {
+function drawSquare(ctx, x, y, color) {
     ctx.fillStyle = color;
-    ctx.fillRect(x, y, x + size, y + size);
+    ctx.fillRect(x * ACRE_SIZE_PX, y * ACRE_SIZE_PX, x + ACRE_SIZE_PX, y + ACRE_SIZE_PX);
 }
 
 function drawBoard(ctx) {
-    for (let x = 0; x < CANVAS_SIZE / PIXEL_SIZE; x++) {
-        for (let y = 0; y < CANVAS_SIZE / PIXEL_SIZE; y++) {
-            drawSquare(ctx, x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE, randomColor());
+    for (let x = 0; x < SCENE_SIZE_AC; x++) {
+        for (let y = 0; y < SCENE_SIZE_AC; y++) {
+            drawSquare(ctx, x, y, randomColor());
         }
     }
 }
 
 var board = document.getElementById("mainboard");
+board.setAttribute("width", CANVAS_SIZE_PX);
+board.setAttribute("height", CANVAS_SIZE_PX);
 var ctx = board.getContext("2d");
 drawBoard(ctx)
 
