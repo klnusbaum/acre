@@ -1,0 +1,111 @@
+html,
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+body.dragging {
+    /* Disable text selection to prevent accidental 
+     * text selection when dragging the table
+     */
+    user-select: none;
+}
+
+.plot_viewer {
+    max-width: 100vw;
+    max-height: 100vh;
+    position: fixed;
+    overflow: hidden;
+    cursor: grab;
+}
+
+.plot_viewer.dragging {
+    cursor: grabbing;
+}
+
+table.plot {
+    border-collapse: collapse;
+    table-layout: fixed;
+    padding: 0;
+}
+
+#plot {
+    display: block;
+    transform-origin: top left;
+    transition: transform 0.1s ease-out;
+    transform: scale(1);
+}
+
+td.acre {
+    width: 10px;
+    height: 10px;
+    padding: 0;
+    margin: 0;
+    line-height: 0;
+    font-size: 0;
+}
+
+td.acre_white {
+    background-color: white
+}
+
+td.acre_silver {
+    background-color: silver
+}
+
+td.acre_gray {
+    background-color: gray
+}
+
+td.acre_black {
+    background-color: black
+}
+
+td.acre_red {
+    background-color: red
+}
+
+td.acre_maroon {
+    background-color: maroon
+}
+
+td.acre_yellow {
+    background-color: yellow
+}
+
+td.acre_olive {
+    background-color: olive
+}
+
+td.acre_lime {
+    background-color: lime
+}
+
+td.acre_green {
+    background-color: green
+}
+
+td.acre_aqua {
+    background-color: aqua
+}
+
+td.acre_teal {
+    background-color: teal
+}
+
+td.acre_blue {
+    background-color: blue
+}
+
+td.acre_navy {
+    background-color: navy
+}
+
+td.acre_fuchsia {
+    background-color: fuchsia
+}
+
+td.acre_purple {
+    background-color: purple
+}
