@@ -20,41 +20,34 @@ const COLORS = [
 ]
 const PLOT_SIZE = 100
 
-const PLOT = Array.from({ length: PLOT_SIZE * PLOT_SIZE }, (item, index) => random_color())
-
 function random_color() {
     return COLORS[Math.floor(Math.random() * COLORS.length)]
 }
 
 function random_pos() {
-    return Math.floor(Math.random() * PLOT_SIZE * PLOT_SIZE)
+    return Math.floor(Math.random() * PLOT_SIZE)
 }
 
-const intervalId = setInterval(changeBackground, 100);
+const plot = Array.from({ length: PLOT_SIZE }, () => Array.from({ length: PLOT_SIZE }, random_color));
+const canvas = document.getElementById('plot');
+const ctx = canvas.getContext("2d");
+draw_plot();
 
-function changeBackground() {
-    PLOT[random_pos()] = random_color()
+setInterval(function() {
+    const x = random_pos()
+    const y = random_pos()
+    const color = random_color()
+    plot[x][y] = color;
+    ctx.fillStyle = `rgb(${color[0]} ${color[1]} ${color[2]}`;
+    ctx.fillRect(x * 10, y * 10, 10, 10);
+}, 100);
 
-    const canvas = document.getElementById('plot');
-    const ctx = canvas.getContext("2d");
-    const imgData = ctx.createImageData(PLOT_SIZE, PLOT_SIZE);
-
-    for (let i = 0; i < PLOT.length; i++) {
-        const color = PLOT[i];
-        const ipos = i * 4;
-        imgData.data[ipos + 0] = color[0];
-        imgData.data[ipos + 1] = color[1];
-        imgData.data[ipos + 2] = color[2];
-        imgData.data[ipos + 3] = 255;
+function draw_plot() {
+    for (let i = 0; i < PLOT_SIZE; i++) {
+        for (let j = 0; j < PLOT_SIZE; j++) {
+            const color = plot[i][j];
+            ctx.fillStyle = `rgb(${color[0]} ${color[1]} ${color[2]}`;
+            ctx.fillRect(i * 10, j * 10, 10, 10);
+        }
     }
-
-    // Create a temporary offscreen canvas to draw the image data onto
-    const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = PLOT_SIZE;
-    tempCanvas.height = PLOT_SIZE;
-    const tempCtx = tempCanvas.getContext('2d');
-    tempCtx.putImageData(imgData, 0, 0);
-
-    const scaleFactor = 10;
-    ctx.drawImage(tempCanvas, 0, 0, PLOT_SIZE * scaleFactor, PLOT_SIZE * scaleFactor);
 }
