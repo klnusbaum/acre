@@ -18,8 +18,8 @@ const COLORS = [
     [207, 110, 228],
     [130, 0, 128]
 ]
-const PLOT_SIZE = 1000;
-const UPDATE_RATE_MS = 1000;
+const PLOT_SIZE = 100
+const UPDATE_RATE_MS = 100;
 const CANVAS_SIZE = 800;
 const ACRE_SIZE = 10;
 
@@ -28,31 +28,48 @@ function random_color() {
 }
 
 function random_pos() {
-    return Math.floor(Math.random() * PLOT_SIZE);
+    return Math.floor(Math.random() * PLOT_SIZE * PLOT_SIZE);
 }
 
-const plot = Array.from({ length: PLOT_SIZE }, () => Array.from({ length: PLOT_SIZE }, random_color));
+const plot = Array.from({ length: PLOT_SIZE * PLOT_SIZE }, random_color);
 const canvas = document.getElementById('plot');
 const ctx = canvas.getContext("2d");
-const scale = CANVAS_SIZE / (PLOT_SIZE * ACRE_SIZE);
-ctx.scale(scale, scale);
+ctx.imageSmoothingEnabled = false;
+
+const MIN_SCALE = CANVAS_SIZE / PLOT_SIZE;
+let scale = MIN_SCALE;
+
 draw_plot();
 
-setInterval(function() {
-    const x = random_pos()
-    const y = random_pos()
-    const color = random_color()
-    plot[x][y] = color;
-    ctx.fillStyle = `rgb(${color[0]} ${color[1]} ${color[2]}`;
-    ctx.fillRect(x * ACRE_SIZE, y * ACRE_SIZE, ACRE_SIZE, ACRE_SIZE);
+const intervalId = setInterval(function() {
+    plot[random_pos()] = random_color();
+    draw_plot();
 }, UPDATE_RATE_MS);
 
 function draw_plot() {
-    for (let i = 0; i < PLOT_SIZE; i++) {
-        for (let j = 0; j < PLOT_SIZE; j++) {
-            const color = plot[i][j];
-            ctx.fillStyle = `rgb(${color[0]} ${color[1]} ${color[2]}`;
-            ctx.fillRect(i * 10, j * 10, 10, 10);
-        }
+    const drawingCanvas = new OffscreenCanvas(PLOT_SIZE, PLOT_SIZE);
+    const dCtx = drawingCanvas.getContext("2d");
+    const imgData = dCtx.createImageData(PLOT_SIZE, PLOT_SIZE);
+
+    for (let i = 0; i < PLOT_SIZE * PLOT_SIZE; i++) {
+        const color = plot[i]
+        const ipos = i * 4;
+        imgData.data[ipos + 0] = color[0];
+        imgData.data[ipos + 1] = color[1];
+        imgData.data[ipos + 2] = color[2];
+        imgData.data[ipos + 3] = 255;
     }
+
+    dCtx.putImageData(imgData, 0, 0);
+
+    ctx.drawImage(drawingCanvas, 0, 0, PLOT_SIZE * scale, PLOT_SIZE * scale);
 }
+
+canvas.addEventListener('wheel', function(event) {
+    event.preventDefault();
+    if (event.deltaY > 0) {
+        scale = Math.min(scale + 0.1, 20);
+    } else if (event.deltaY < 0) {
+        scale = Math.max(scale - 0.1, MIN_SCALE);
+    }
+});
