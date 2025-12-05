@@ -21,7 +21,7 @@ const COLORS = [
 const PLOT_SIZE = 100
 const UPDATE_RATE_MS = 100;
 const CANVAS_SIZE = 800;
-const ACRE_SIZE = 10;
+const MIN_SCALE = CANVAS_SIZE / PLOT_SIZE;
 
 function random_color() {
     return COLORS[Math.floor(Math.random() * COLORS.length)];
@@ -36,7 +36,6 @@ const canvas = document.getElementById('plot');
 const ctx = canvas.getContext("2d");
 ctx.imageSmoothingEnabled = false;
 
-const MIN_SCALE = CANVAS_SIZE / PLOT_SIZE;
 let scale = MIN_SCALE;
 
 draw_plot();
@@ -47,9 +46,7 @@ const intervalId = setInterval(function() {
 }, UPDATE_RATE_MS);
 
 function draw_plot() {
-    const drawingCanvas = new OffscreenCanvas(PLOT_SIZE, PLOT_SIZE);
-    const dCtx = drawingCanvas.getContext("2d");
-    const imgData = dCtx.createImageData(PLOT_SIZE, PLOT_SIZE);
+    const imgData = ctx.createImageData(PLOT_SIZE, PLOT_SIZE);
 
     for (let i = 0; i < PLOT_SIZE * PLOT_SIZE; i++) {
         const color = plot[i]
@@ -60,9 +57,9 @@ function draw_plot() {
         imgData.data[ipos + 3] = 255;
     }
 
-    dCtx.putImageData(imgData, 0, 0);
-
-    ctx.drawImage(drawingCanvas, 0, 0, PLOT_SIZE * scale, PLOT_SIZE * scale);
+    createImageBitmap(imgData).then((rendered) => {
+        ctx.drawImage(rendered, 0, 0, PLOT_SIZE * scale, PLOT_SIZE * scale);
+    })
 }
 
 canvas.addEventListener('wheel', function(event) {
