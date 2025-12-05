@@ -18,19 +18,24 @@ const COLORS = [
     [207, 110, 228],
     [130, 0, 128]
 ]
-const PLOT_SIZE = 100
+const PLOT_SIZE = 1000;
+const UPDATE_RATE_MS = 1000;
+const CANVAS_SIZE = 800;
+const ACRE_SIZE = 10;
 
 function random_color() {
-    return COLORS[Math.floor(Math.random() * COLORS.length)]
+    return COLORS[Math.floor(Math.random() * COLORS.length)];
 }
 
 function random_pos() {
-    return Math.floor(Math.random() * PLOT_SIZE)
+    return Math.floor(Math.random() * PLOT_SIZE);
 }
 
 const plot = Array.from({ length: PLOT_SIZE }, () => Array.from({ length: PLOT_SIZE }, random_color));
 const canvas = document.getElementById('plot');
 const ctx = canvas.getContext("2d");
+const scale = CANVAS_SIZE / (PLOT_SIZE * ACRE_SIZE);
+ctx.scale(scale, scale);
 draw_plot();
 
 setInterval(function() {
@@ -39,8 +44,8 @@ setInterval(function() {
     const color = random_color()
     plot[x][y] = color;
     ctx.fillStyle = `rgb(${color[0]} ${color[1]} ${color[2]}`;
-    ctx.fillRect(x * 10, y * 10, 10, 10);
-}, 100);
+    ctx.fillRect(x * ACRE_SIZE, y * ACRE_SIZE, ACRE_SIZE, ACRE_SIZE);
+}, UPDATE_RATE_MS);
 
 function draw_plot() {
     for (let i = 0; i < PLOT_SIZE; i++) {
