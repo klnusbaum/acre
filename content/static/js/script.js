@@ -69,4 +69,5 @@ canvas.addEventListener('wheel', function(event) {
     } else if (event.deltaY < 0) {
         scale = Math.max(scale - 0.1, MIN_SCALE);
     }
+    draw_plot();
 });
