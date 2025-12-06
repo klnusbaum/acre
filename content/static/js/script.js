@@ -18,13 +18,13 @@ const COLORS = [
     [207, 110, 228],
     [130, 0, 128]
 ]
-const PLOT_SIZE = 100;
+const PLOT_SIZE = 1000;
 const UPDATE_RATE_MS = 100;
 const CANVAS_SIZE = 800;
 const MIN_SCALE = CANVAS_SIZE / PLOT_SIZE;
 
 function random_color() {
-    return COLORS[Math.floor(Math.random() * COLORS.length)];
+    return Math.floor(Math.random() * COLORS.length);
 }
 
 function random_pos() {
@@ -43,7 +43,7 @@ async function render() {
     const imgData = ctx.createImageData(PLOT_SIZE, PLOT_SIZE);
 
     for (let i = 0; i < PLOT_SIZE * PLOT_SIZE; i++) {
-        const color = plot[i]
+        const color = COLORS[plot[i]]
         const ipos = i * 4;
         imgData.data[ipos + 0] = color[0];
         imgData.data[ipos + 1] = color[1];
