@@ -1,5 +1,3 @@
-'use strict';
-
 const COLORS = [
     [255, 255, 255],
     [228, 228, 228],
@@ -22,6 +20,7 @@ const PLOT_SIZE = 1000;
 const UPDATE_RATE_MS = 100;
 const CANVAS_SIZE = 800;
 const MIN_SCALE = CANVAS_SIZE / PLOT_SIZE;
+const MAX_SCALE = 20
 
 function random_color() {
     return Math.floor(Math.random() * COLORS.length);
@@ -70,7 +69,7 @@ function start() {
 canvas.addEventListener('wheel', function(event) {
     event.preventDefault();
     if (event.deltaY > 0) {
-        scale = Math.min(scale + 0.1, 20);
+        scale = Math.min(scale + 0.1, MAX_SCALE);
     } else if (event.deltaY < 0) {
         scale = Math.max(scale - 0.1, MIN_SCALE);
     }
