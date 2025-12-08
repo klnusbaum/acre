@@ -61,8 +61,9 @@ class Scene {
         await this.render();
     }
 
-    change_scale(sign) {
+    async change_scale(sign) {
         this.#scale = clamp(MIN_SCALE, MAX_SCALE, this.#scale + sign * ZOOM_STEP);
+        await this.render();
     }
 
     draw() {
