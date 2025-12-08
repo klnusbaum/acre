@@ -32,6 +32,8 @@ class Scene {
     #ctx;
     #scale;
     #bitmap;
+    #xoffset;
+    #yoffset;
 
     constructor(canvas) {
         this.#ctx = canvas.getContext("2d");
@@ -39,6 +41,8 @@ class Scene {
         this.#plot = Array.from({ length: PLOT_SIZE * PLOT_SIZE }, random_color);
         this.#scale = MIN_SCALE;
         this.#bitmap = null;
+        this.#xoffset = 0;
+        this.#yoffset = 0;
     }
 
     async render() {
@@ -66,6 +70,15 @@ class Scene {
         await this.render();
     }
 
+    async pan(dx, dy) {
+        // FIXME
+        // -PLOT_SIZE is incorrect. It needs to be some value
+        // based off of both PLOT_SIZE and current scale.
+        this.#xoffset = clamp(-PLOT_SIZE, 0, this.#xoffset + dx);
+        this.#yoffset = clamp(-PLOT_SIZE, 0, this.#yoffset + dy);
+        await this.render();
+    }
+
     draw() {
         if (this.#bitmap == null) {
             this.#draw_loading();
@@ -81,17 +94,62 @@ class Scene {
     }
 
     #draw_plot() {
-        this.#ctx.drawImage(this.#bitmap, 0, 0, PLOT_SIZE * this.#scale, PLOT_SIZE * this.#scale);
+        this.#ctx.drawImage(
+            this.#bitmap,
+            this.#xoffset,
+            this.#yoffset,
+            PLOT_SIZE * this.#scale,
+            PLOT_SIZE * this.#scale);
     }
 }
 
+class Panner {
+    #isDown
+    #prevLeft
+    #prevTop
+    #listener
+
+    constructor(toWatch, listener) {
+        this.#isDown = false
+        this.#listener = listener;
+        toWatch.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            console.log("in mouse down");
+            this.#isDown = true
+            this.#prevLeft = e.pageX;
+            this.#prevTop = e.pageY;
+        });
+        toWatch.addEventListener('mousemove', (e) => {
+            e.preventDefault();
+            if (!this.#isDown) {
+                return
+            }
+
+            console.log("in mouse move");
+            const dx = e.pageX - this.#prevLeft;
+            const dy = e.pageY - this.#prevTop;
+            this.#prevLeft = e.pageX;
+            this.#prevTop = e.pageY;
+            this.#listener(dx, dy);
+        });
+        toWatch.addEventListener('mouseup', (e) => {
+            e.preventDefault();
+            console.log("in mouse up");
+            this.#isDown = false;
+        })
+    }
+}
+
+
 const canvas = document.getElementById('plot');
 const scene = new Scene(canvas);
+const panner = new Panner(canvas, (dx, dy) => scene.pan(dx, dy));
 
 canvas.addEventListener('wheel', (event) => {
     event.preventDefault();
     scene.change_scale(Math.sign(event.deltaY));
 });
+
 
 
 requestAnimationFrame(() => scene.draw());
