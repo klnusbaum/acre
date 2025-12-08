@@ -67,8 +67,21 @@ class Scene {
     }
 
     draw() {
-        this.#ctx.drawImage(this.#bitmap, 0, 0, PLOT_SIZE * this.#scale, PLOT_SIZE * this.#scale);
+        if (this.#bitmap == null) {
+            this.#draw_loading();
+        } else {
+            this.#draw_plot();
+        }
         requestAnimationFrame(() => this.draw());
+    }
+
+    #draw_loading() {
+        this.#ctx.font = "28px sans-serif";
+        this.#ctx.fillText("Loading...", 0, 28);
+    }
+
+    #draw_plot() {
+        this.#ctx.drawImage(this.#bitmap, 0, 0, PLOT_SIZE * this.#scale, PLOT_SIZE * this.#scale);
     }
 }
 
@@ -80,6 +93,6 @@ canvas.addEventListener('wheel', (event) => {
     scene.change_scale(Math.sign(event.deltaY));
 });
 
-await scene.render();
+
 requestAnimationFrame(() => scene.draw());
 setInterval(() => scene.set_acre(random_pos(), random_color()), UPDATE_RATE_MS);
