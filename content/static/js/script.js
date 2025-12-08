@@ -16,19 +16,18 @@ const COLORS = [
     [207, 110, 228],
     [130, 0, 128]
 ]
-const PLOT_SIZE = 1000;
+const ZOOM_STEP = 0.1;
+const PLOT_SIZE = 100;
 const UPDATE_RATE_MS = 100;
 const CANVAS_SIZE = 800;
 const MIN_SCALE = CANVAS_SIZE / PLOT_SIZE;
 const MAX_SCALE = 20
 
-function random_color() {
-    return Math.floor(Math.random() * COLORS.length);
-}
+const clamp = (min, max, val) => Math.min(max, Math.max(min, val));
 
-function random_pos() {
-    return Math.floor(Math.random() * PLOT_SIZE * PLOT_SIZE);
-}
+const random_color = () => Math.floor(Math.random() * COLORS.length);
+
+const random_pos = () => Math.floor(Math.random() * PLOT_SIZE * PLOT_SIZE);
 
 const plot = Array.from({ length: PLOT_SIZE * PLOT_SIZE }, random_color);
 const canvas = document.getElementById('plot');
@@ -68,11 +67,7 @@ function start() {
 
 canvas.addEventListener('wheel', function(event) {
     event.preventDefault();
-    if (event.deltaY > 0) {
-        scale = Math.min(scale + 0.1, MAX_SCALE);
-    } else if (event.deltaY < 0) {
-        scale = Math.max(scale - 0.1, MIN_SCALE);
-    }
+    scale = clamp(MIN_SCALE, MAX_SCALE, scale + Math.sign(event.deltaY) * ZOOM_STEP);
 });
 
 render().then(start);
