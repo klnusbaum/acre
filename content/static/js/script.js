@@ -24,50 +24,61 @@ const MIN_SCALE = CANVAS_SIZE / PLOT_SIZE;
 const MAX_SCALE = 20
 
 const clamp = (min, max, val) => Math.min(max, Math.max(min, val));
-
 const random_color = () => Math.floor(Math.random() * COLORS.length);
-
 const random_pos = () => Math.floor(Math.random() * PLOT_SIZE * PLOT_SIZE);
 
-const plot = Array.from({ length: PLOT_SIZE * PLOT_SIZE }, random_color);
-const canvas = document.getElementById('plot');
-const ctx = canvas.getContext("2d");
-ctx.imageSmoothingEnabled = false;
+class Scene {
+    #plot;
+    #ctx;
+    #scale;
+    #bitmap;
 
-let scale = MIN_SCALE;
-let bitmap = null;
-
-async function render() {
-    const imgData = ctx.createImageData(PLOT_SIZE, PLOT_SIZE);
-
-    for (let i = 0; i < PLOT_SIZE * PLOT_SIZE; i++) {
-        const color = COLORS[plot[i]]
-        const ipos = i * 4;
-        imgData.data[ipos + 0] = color[0];
-        imgData.data[ipos + 1] = color[1];
-        imgData.data[ipos + 2] = color[2];
-        imgData.data[ipos + 3] = 255;
+    constructor(canvas) {
+        this.#ctx = canvas.getContext("2d");
+        this.#ctx.imageSmoothingEnabled = false;
+        this.#plot = Array.from({ length: PLOT_SIZE * PLOT_SIZE }, random_color);
+        this.#scale = MIN_SCALE;
+        this.#bitmap = null;
     }
 
-    bitmap = await createImageBitmap(imgData)
+    async render() {
+        const imgData = this.#ctx.createImageData(PLOT_SIZE, PLOT_SIZE);
+
+        for (let i = 0; i < PLOT_SIZE * PLOT_SIZE; i++) {
+            const color = COLORS[this.#plot[i]]
+            const ipos = i * 4;
+            imgData.data[ipos + 0] = color[0];
+            imgData.data[ipos + 1] = color[1];
+            imgData.data[ipos + 2] = color[2];
+            imgData.data[ipos + 3] = 255;
+        }
+
+        this.#bitmap = await createImageBitmap(imgData)
+    }
+
+    async set_acre(pos, color) {
+        this.#plot[pos] = color;
+        await this.render();
+    }
+
+    change_scale(sign) {
+        this.#scale = clamp(MIN_SCALE, MAX_SCALE, this.#scale + sign * ZOOM_STEP);
+    }
+
+    draw() {
+        this.#ctx.drawImage(this.#bitmap, 0, 0, PLOT_SIZE * this.#scale, PLOT_SIZE * this.#scale);
+        requestAnimationFrame(() => this.draw());
+    }
 }
 
-function draw_plot() {
-    ctx.drawImage(bitmap, 0, 0, PLOT_SIZE * scale, PLOT_SIZE * scale);
-    requestAnimationFrame(draw_plot);
-}
+const canvas = document.getElementById('plot');
+const scene = new Scene(canvas);
 
-function start() {
-    draw_plot()
-    setInterval(async function() {
-        plot[random_pos()] = random_color();
-        await render();
-    }, UPDATE_RATE_MS);
-}
-
-canvas.addEventListener('wheel', function(event) {
+canvas.addEventListener('wheel', (event) => {
     event.preventDefault();
-    scale = clamp(MIN_SCALE, MAX_SCALE, scale + Math.sign(event.deltaY) * ZOOM_STEP);
+    scene.change_scale(Math.sign(event.deltaY));
 });
 
-render().then(start);
+await scene.render();
+requestAnimationFrame(() => scene.draw());
+setInterval(() => scene.set_acre(random_pos(), random_color()), UPDATE_RATE_MS);
