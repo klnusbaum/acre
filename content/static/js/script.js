@@ -158,7 +158,7 @@ class MouseHandler {
 
 const canvas = document.getElementById('plot');
 const scene = new Scene(canvas);
-const panner = new MouseHandler(canvas, (dx, dy) => scene.pan(dx, dy), (x, y) => scene.pixel_clicked(x, y));
+const mouseHandler = new MouseHandler(canvas, (dx, dy) => scene.pan(dx, dy), (x, y) => scene.pixel_clicked(x, y));
 
 canvas.addEventListener('wheel', (event) => {
     event.preventDefault();
