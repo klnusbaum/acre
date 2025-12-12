@@ -80,8 +80,12 @@ class Scene {
     pixel_clicked(canvasX, canvasY) {
         const plotX = canvasX / this.#scale
         const plotY = canvasY / this.#scale
-
-        console.log(`Canvas ${canvasX},${canvasY}, Plot ${plotX},${plotY}`)
+        document.dispatchEvent("acreclicked", {
+            detail: {
+                x: Math.floor(plotX),
+                y: Math.floor(plotY),
+            }
+        })
     }
 
 
@@ -109,19 +113,21 @@ class Scene {
     }
 }
 
-class MouseHandler {
+class Interactor {
     #isDown
     #prevLeft
     #prevTop
     #onMove
     #onClick
+    #onWheel
     #isDragging
 
-    constructor(toWatch, onMove, onClick) {
+    constructor(toWatch, onMove, onClick, onWheel) {
         this.#isDown = false
         this.#isDragging = false
         this.#onMove = onMove;
         this.#onClick = onClick;
+        this.#onWheel = onWheel;
         toWatch.addEventListener('mousedown', (e) => {
             e.preventDefault();
             console.log("in mouse down");
@@ -152,18 +158,23 @@ class MouseHandler {
             this.#isDown = false;
             this.#isDragging = false;
         })
+        toWatch.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            this.#onWheel(Math.sign(e.deltaY));
+        })
     }
 }
 
 
 const canvas = document.getElementById('plot');
 const scene = new Scene(canvas);
-const mouseHandler = new MouseHandler(canvas, (dx, dy) => scene.pan(dx, dy), (x, y) => scene.pixel_clicked(x, y));
+const interactor = new Interactor(
+    canvas,
+    (dx, dy) => scene.pan(dx, dy),
+    (x, y) => scene.pixel_clicked(x, y),
+    (sign) => scene.change_scale(sign)
+);
 
-canvas.addEventListener('wheel', (event) => {
-    event.preventDefault();
-    scene.change_scale(Math.sign(event.deltaY));
-});
 
 requestAnimationFrame(() => scene.draw());
 setInterval(() => scene.set_acre(random_pos(), random_color()), UPDATE_RATE_MS);
