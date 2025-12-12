@@ -77,11 +77,11 @@ class Scene {
         await this.render();
     }
 
-    pixel_clicked(canvas_x, canvas_y) {
-        const plot_x = canvas_x / this.#scale
-        const plot_y = canvas_y / this.#scale
+    pixel_clicked(canvasX, canvasY) {
+        const plotX = canvasX / this.#scale
+        const plotY = canvasY / this.#scale
 
-        console.log(`Canvas ${canvas_x},${canvas_y}, Plot ${plot_x},${plot_y}`)
+        console.log(`Canvas ${canvasX},${canvasY}, Plot ${plotX},${plotY}`)
     }
 
 
