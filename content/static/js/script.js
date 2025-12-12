@@ -71,11 +71,19 @@ class Scene {
     }
 
     async pan(dx, dy) {
-        const MIN_OFFSET = CANVAS_SIZE - this.#scale * PLOT_SIZE
-        this.#xoffset = clamp(MIN_OFFSET, 0, this.#xoffset + dx);
-        this.#yoffset = clamp(MIN_OFFSET, 0, this.#yoffset + dy);
+        const min_offset = CANVAS_SIZE - this.#scale * PLOT_SIZE
+        this.#xoffset = clamp(min_offset, 0, this.#xoffset + dx);
+        this.#yoffset = clamp(min_offset, 0, this.#yoffset + dy);
         await this.render();
     }
+
+    pixel_clicked(canvas_x, canvas_y) {
+        const plot_x = canvas_x / this.#scale
+        const plot_y = canvas_y / this.#scale
+
+        console.log(`Canvas ${canvas_x},${canvas_y}, Plot ${plot_x},${plot_y}`)
+    }
+
 
     draw() {
         if (this.#bitmap == null) {
@@ -101,15 +109,19 @@ class Scene {
     }
 }
 
-class Panner {
+class MouseHandler {
     #isDown
     #prevLeft
     #prevTop
-    #listener
+    #onMove
+    #onClick
+    #isDragging
 
-    constructor(toWatch, listener) {
+    constructor(toWatch, onMove, onClick) {
         this.#isDown = false
-        this.#listener = listener;
+        this.#isDragging = false
+        this.#onMove = onMove;
+        this.#onClick = onClick;
         toWatch.addEventListener('mousedown', (e) => {
             e.preventDefault();
             console.log("in mouse down");
@@ -128,12 +140,17 @@ class Panner {
             const dy = e.pageY - this.#prevTop;
             this.#prevLeft = e.pageX;
             this.#prevTop = e.pageY;
-            this.#listener(dx, dy);
+            this.#onMove(dx, dy);
+            this.#isDragging = true;
         });
         toWatch.addEventListener('mouseup', (e) => {
             e.preventDefault();
             console.log("in mouse up");
+            if (this.#isDown && !this.#isDragging) {
+                this.#onClick(e.offsetX, e.offsetY)
+            }
             this.#isDown = false;
+            this.#isDragging = false;
         })
     }
 }
@@ -141,14 +158,12 @@ class Panner {
 
 const canvas = document.getElementById('plot');
 const scene = new Scene(canvas);
-const panner = new Panner(canvas, (dx, dy) => scene.pan(dx, dy));
+const panner = new MouseHandler(canvas, (dx, dy) => scene.pan(dx, dy), (x, y) => scene.pixel_clicked(x, y));
 
 canvas.addEventListener('wheel', (event) => {
     event.preventDefault();
     scene.change_scale(Math.sign(event.deltaY));
 });
-
-
 
 requestAnimationFrame(() => scene.draw());
 setInterval(() => scene.set_acre(random_pos(), random_color()), UPDATE_RATE_MS);
