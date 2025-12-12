@@ -71,11 +71,9 @@ class Scene {
     }
 
     async pan(dx, dy) {
-        // FIXME
-        // -PLOT_SIZE is incorrect. It needs to be some value
-        // based off of both PLOT_SIZE and current scale.
-        this.#xoffset = clamp(-PLOT_SIZE, 0, this.#xoffset + dx);
-        this.#yoffset = clamp(-PLOT_SIZE, 0, this.#yoffset + dy);
+        const MIN_OFFSET = CANVAS_SIZE - this.#scale * PLOT_SIZE
+        this.#xoffset = clamp(MIN_OFFSET, 0, this.#xoffset + dx);
+        this.#yoffset = clamp(MIN_OFFSET, 0, this.#yoffset + dy);
         await this.render();
     }
 

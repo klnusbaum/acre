@@ -1,5 +1,6 @@
 use anyhow::Result;
 use axum::response::sse::Event;
+use futures_util::stream;
 use maud::{Markup, html};
 use serde_repr::*;
 use tokio::time::{Duration, Instant, interval};
@@ -119,18 +120,34 @@ fn acre_id(row: usize, col: usize) -> String {
 }
 
 pub fn change_streamer() -> impl Stream<Item = Event> {
-    IntervalStream::new(interval(Duration::from_millis(UPDATE_MILLIS))).map(random_acre)
+    let initial = stream::once(initial_plot());
+    let updates =
+        IntervalStream::new(interval(Duration::from_millis(UPDATE_MILLIS))).map(random_acre);
+    initial.chain(updates)
 }
 
 fn random_acre(_: Instant) -> Event {
-    let row = rand::random_range(0..PLOT_SIZE);
-    let col = rand::random_range(0..PLOT_SIZE);
-    let color = Color::random();
-    let partial = html! {
-        hx-partial hx-target={"#" (acre_id(row,col))} hx-swap="outerHTML" {
-            (acre_td(&color, row, col))
-        }
-    };
+    let pos = rand::random_range(0..PLOT_SIZE * PLOT_SIZE);
+    let color = rand::random_range(0..16);
+    let acre = vec![vec![pos, color]];
+    Event::default()
+        .event("acres")
+        .json_data(acre)
+        .unwrap_or(err_event())
+}
 
-    Event::default().data(partial.into_string())
+async fn initial_plot() -> Event {
+    let mut plot = Vec::with_capacity(PLOT_SIZE * PLOT_SIZE);
+    for (i, acre) in plot.iter_mut().enumerate() {
+        *acre = vec![i, rand::random_range(0..16)];
+    }
+
+    Event::default()
+        .event("acres")
+        .json_data(plot)
+        .unwrap_or(err_event())
+}
+
+fn err_event() -> Event {
+    Event::default().event("acre-error")
 }
