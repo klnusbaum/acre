@@ -86,6 +86,10 @@ class Displayer {
     }
 
     change_scale(sign) {
+        // FIX BUG
+        // if we're panned to the lower right hand corner, we can scale more
+        // than we should be able to.
+        // i.e. we might be past the min_offset (I think)
         this.#scale = clamp(MIN_SCALE, MAX_SCALE, this.#scale + sign * ZOOM_STEP);
     }
 
