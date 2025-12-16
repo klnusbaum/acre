@@ -65,11 +65,11 @@ class Scene {
         await this.render();
     }
 
-    async change_scale(sign) {
+    change_scale(sign) {
         this.#scale = clamp(MIN_SCALE, MAX_SCALE, this.#scale + sign * ZOOM_STEP);
     }
 
-    async pan(dx, dy) {
+    pan(dx, dy) {
         const min_offset = CANVAS_SIZE - this.#scale * PLOT_SIZE
         this.#xoffset = clamp(min_offset, 0, this.#xoffset + dx);
         this.#yoffset = clamp(min_offset, 0, this.#yoffset + dy);
