@@ -28,21 +28,12 @@ const random_color = () => Math.floor(Math.random() * COLORS.length);
 const random_pos = () => Math.floor(Math.random() * PLOT_SIZE * PLOT_SIZE);
 
 class Scene {
-    #plot;
+    #plot
     #ctx;
-    #scale;
-    #bitmap;
-    #xoffset;
-    #yoffset;
 
-    constructor(canvas) {
-        this.#ctx = canvas.getContext("2d");
-        this.#ctx.imageSmoothingEnabled = false;
+    constructor() {
+        this.#ctx = new OffscreenCanvas(PLOT_SIZE, PLOT_SIZE).getContext("2d");
         this.#plot = Array.from({ length: PLOT_SIZE * PLOT_SIZE }, random_color);
-        this.#scale = MIN_SCALE;
-        this.#bitmap = null;
-        this.#xoffset = 0;
-        this.#yoffset = 0;
     }
 
     async render() {
@@ -57,12 +48,41 @@ class Scene {
             imgData.data[ipos + 3] = 255;
         }
 
-        this.#bitmap = await createImageBitmap(imgData)
+        const bitmap = await createImageBitmap(imgData)
+        const event = new CustomEvent("acre_plot_rendered", {
+            detail: {
+                bitmap: bitmap,
+            }
+        })
+        document.dispatchEvent(event);
     }
 
     async set_acre(pos, color) {
         this.#plot[pos] = color;
         await this.render();
+    }
+
+}
+
+class Displayer {
+    #ctx;
+    #scale;
+    #bitmap;
+    #xoffset;
+    #yoffset;
+
+    constructor(canvas) {
+        this.#ctx = canvas.getContext("2d");
+        this.#ctx.imageSmoothingEnabled = false;
+        this.#scale = MIN_SCALE;
+        this.#bitmap = null;
+        this.#xoffset = 0;
+        this.#yoffset = 0;
+    }
+
+    update_bitmap(bitmap) {
+        console.log("updating bitmap");
+        this.#bitmap = bitmap
     }
 
     change_scale(sign) {
@@ -78,7 +98,7 @@ class Scene {
     pixel_clicked(canvasX, canvasY) {
         const plotX = canvasX / this.#scale
         const plotY = canvasY / this.#scale
-        document.dispatchEvent("acreclicked", {
+        document.dispatchEvent("acre_clicked", {
             detail: {
                 x: Math.floor(plotX),
                 y: Math.floor(plotY),
@@ -86,8 +106,8 @@ class Scene {
         })
     }
 
-
     draw() {
+        console.log("in draw");
         if (this.#bitmap == null) {
             this.#draw_loading();
         } else {
@@ -97,11 +117,13 @@ class Scene {
     }
 
     #draw_loading() {
+        console.log("drawing loading");
         this.#ctx.font = "28px sans-serif";
         this.#ctx.fillText("Loading...", 0, 28);
     }
 
     #draw_plot() {
+        console.log("drawing plot");
         this.#ctx.drawImage(
             this.#bitmap,
             this.#xoffset,
@@ -164,15 +186,19 @@ class Interactor {
 }
 
 
+const scene = new Scene();
 const canvas = document.getElementById('plot');
-const scene = new Scene(canvas);
+const displayer = new Displayer(canvas);
+document.addEventListener("acre_plot_rendered", (e) => {
+    displayer.update_bitmap(e.detail.bitmap);
+})
 const interactor = new Interactor(
     canvas,
-    (dx, dy) => scene.pan(dx, dy),
-    (x, y) => scene.pixel_clicked(x, y),
-    (sign) => scene.change_scale(sign)
+    (dx, dy) => displayer.pan(dx, dy),
+    (x, y) => displayer.pixel_clicked(x, y),
+    (sign) => displayer.change_scale(sign)
 );
 
 
-scene.draw();
+displayer.draw();
 setInterval(() => scene.set_acre(random_pos(), random_color()), UPDATE_RATE_MS);
