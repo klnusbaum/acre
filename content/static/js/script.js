@@ -81,7 +81,6 @@ class Displayer {
     }
 
     update_bitmap(bitmap) {
-        console.log("updating bitmap");
         this.#bitmap = bitmap
     }
 
@@ -110,7 +109,6 @@ class Displayer {
     }
 
     draw() {
-        console.log("in draw");
         if (this.#bitmap == null) {
             this.#draw_loading();
         } else {
@@ -120,13 +118,11 @@ class Displayer {
     }
 
     #draw_loading() {
-        console.log("drawing loading");
         this.#ctx.font = "28px sans-serif";
         this.#ctx.fillText("Loading...", 0, 28);
     }
 
     #draw_plot() {
-        console.log("drawing plot");
         this.#ctx.drawImage(
             this.#bitmap,
             this.#xoffset,
