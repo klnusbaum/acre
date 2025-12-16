@@ -176,5 +176,5 @@ const interactor = new Interactor(
 );
 
 
-requestAnimationFrame(() => scene.draw());
+scene.draw();
 setInterval(() => scene.set_acre(random_pos(), random_color()), UPDATE_RATE_MS);
