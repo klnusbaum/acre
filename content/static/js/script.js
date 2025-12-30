@@ -61,7 +61,6 @@ class Scene {
         this.#plot[pos] = color;
         await this.render();
     }
-
 }
 
 class Displayer {
@@ -136,25 +135,19 @@ class Interactor {
     #isDown
     #prevLeft
     #prevTop
-    #onMove
-    #onClick
-    #onWheel
     #isDragging
 
-    constructor(toWatch, onMove, onClick, onWheel) {
+    constructor(canvas, displayer) {
         this.#isDown = false
         this.#isDragging = false
-        this.#onMove = onMove;
-        this.#onClick = onClick;
-        this.#onWheel = onWheel;
-        toWatch.addEventListener('mousedown', (e) => {
+        canvas.addEventListener('mousedown', (e) => {
             e.preventDefault();
             console.log("in mouse down");
             this.#isDown = true
             this.#prevLeft = e.pageX;
             this.#prevTop = e.pageY;
         });
-        toWatch.addEventListener('mousemove', (e) => {
+        canvas.addEventListener('mousemove', (e) => {
             e.preventDefault();
             if (!this.#isDown) {
                 return
@@ -165,21 +158,21 @@ class Interactor {
             const dy = e.pageY - this.#prevTop;
             this.#prevLeft = e.pageX;
             this.#prevTop = e.pageY;
-            this.#onMove(dx, dy);
             this.#isDragging = true;
+            displayer.pan(dx, dy)
         });
-        toWatch.addEventListener('mouseup', (e) => {
+        canvas.addEventListener('mouseup', (e) => {
             e.preventDefault();
             console.log("in mouse up");
             if (this.#isDown && !this.#isDragging) {
-                this.#onClick(e.offsetX, e.offsetY)
+                displayer.pixel_clicked(e.offsetX, e.offsetY);
             }
             this.#isDown = false;
             this.#isDragging = false;
         })
-        toWatch.addEventListener('wheel', (e) => {
+        canvas.addEventListener('wheel', (e) => {
             e.preventDefault();
-            this.#onWheel(Math.sign(e.deltaY));
+            displayer.change_scale(Math.sign(e.deltaY));
         })
     }
 }
@@ -193,9 +186,7 @@ document.addEventListener("acre_plot_rendered", (e) => {
 })
 const interactor = new Interactor(
     canvas,
-    (dx, dy) => displayer.pan(dx, dy),
-    (x, y) => displayer.pixel_clicked(x, y),
-    (sign) => displayer.change_scale(sign)
+    displayer
 );
 
 
