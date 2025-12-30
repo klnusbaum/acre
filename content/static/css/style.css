@@ -2,8 +2,12 @@ body {
     margin: 0;
 }
 
-canvas#plot {
-    margin-left: auto;
-    margin-right: auto;
+acre-plot#plot {
     display: block;
+    width: 100%;
+}
+
+acre-plot#plot canvas {
+    display: block;
+    margin: 0 auto;
 }

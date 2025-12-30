@@ -179,19 +179,28 @@ class Interactor {
     }
 }
 
+class AcrePlot extends HTMLElement {
+    #onRendered
 
-function setupDrawing(canvas) {
-    const displayer = new Displayer(canvas);
-    document.addEventListener("acre_plot_rendered", (e) => {
-        displayer.update_bitmap(e.detail.bitmap);
-    });
-    displayer.draw();
-    new Interactor(
-        canvas,
-        displayer
-    );
+    connectedCallback() {
+        const canvas = document.createElement("canvas");
+        canvas.width = 800;
+        canvas.height = 800;
+        this.appendChild(canvas);
+
+        const displayer = new Displayer(canvas);
+        new Interactor(canvas, displayer);
+
+        this.#onRendered = (e) => displayer.update_bitmap(e.detail.bitmap);
+        document.addEventListener("acre_plot_rendered", this.#onRendered);
+    }
+
+    disconnectedCallback() {
+        document.removeEventListener("acre_plot_rendered", this.#onRendered);
+    }
 }
+
+customElements.define("acre-plot", AcrePlot);
 
 const scene = new Scene();
 setInterval(() => scene.set_acre(random_pos(), random_color()), UPDATE_RATE_MS);
-setupDrawing(document.getElementById('plot'));
