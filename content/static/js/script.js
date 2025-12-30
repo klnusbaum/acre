@@ -81,12 +81,14 @@ class Displayer {
 
     update_bitmap(bitmap) {
         this.#bitmap = bitmap
+        requestAnimationFrame(() => this.draw());
     }
 
     change_scale(sign) {
         this.#scale = clamp(MIN_SCALE, MAX_SCALE, this.#scale + sign * ZOOM_STEP);
         // N.B. needed so that we move the scene back into proper bounds if need be.
         // e.g. we're zooming out but currently in the furthest lower right hand corner.
+        // pan also calls requestAnimationFrame for us.
         this.pan(0, 0);
     }
 
@@ -94,6 +96,7 @@ class Displayer {
         const min_offset = CANVAS_SIZE - this.#scale * PLOT_SIZE
         this.#xoffset = clamp(min_offset, 0, this.#xoffset + dx);
         this.#yoffset = clamp(min_offset, 0, this.#yoffset + dy);
+        requestAnimationFrame(() => this.draw());
     }
 
     pixel_clicked(canvasX, canvasY) {
@@ -113,7 +116,6 @@ class Displayer {
         } else {
             this.#draw_plot();
         }
-        requestAnimationFrame(() => this.draw());
     }
 
     #draw_loading() {
@@ -188,7 +190,6 @@ const interactor = new Interactor(
     canvas,
     displayer
 );
-
 
 displayer.draw();
 setInterval(() => scene.set_acre(random_pos(), random_color()), UPDATE_RATE_MS);
