@@ -191,6 +191,11 @@ class AcrePlot extends HTMLElement {
         const displayer = new Displayer(canvas);
         new Interactor(canvas, displayer);
 
+        // TODO this always means we show loading, even when we have
+        // an already existing bitmap in a Scene. Maybe try to get a good
+        // initial display if we have an existing, good bitmap.
+        // might have to use a global...
+        displayer.draw();
         this.#onRendered = (e) => displayer.update_bitmap(e.detail.bitmap);
         document.addEventListener("acre_plot_rendered", this.#onRendered);
     }
