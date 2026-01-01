@@ -63,20 +63,90 @@ class Scene {
     }
 }
 
-class Displayer {
+class Interactor {
+    #isDown
+    #prevLeft
+    #prevTop
+    #isDragging
+
+    constructor(canvas, onDownMove, onClick, onZoom) {
+        this.#isDown = false
+        this.#isDragging = false
+        canvas.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            console.log("in mouse down");
+            this.#isDown = true
+            this.#prevLeft = e.pageX;
+            this.#prevTop = e.pageY;
+        });
+        canvas.addEventListener('mousemove', (e) => {
+            e.preventDefault();
+            if (!this.#isDown) {
+                return
+            }
+
+            console.log("in mouse move");
+            const dx = e.pageX - this.#prevLeft;
+            const dy = e.pageY - this.#prevTop;
+            this.#prevLeft = e.pageX;
+            this.#prevTop = e.pageY;
+            this.#isDragging = true;
+            onDownMove(dx, dy)
+        });
+        canvas.addEventListener('mouseup', (e) => {
+            e.preventDefault();
+            console.log("in mouse up");
+            if (this.#isDown && !this.#isDragging) {
+                onClick(e.offsetX, e.offsetY);
+            }
+            this.#isDown = false;
+            this.#isDragging = false;
+        })
+        canvas.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            onZoom(Math.sign(e.deltaY));
+        })
+    }
+}
+
+class AcrePlot extends HTMLElement {
     #ctx;
     #scale;
     #bitmap;
     #xoffset;
     #yoffset;
 
-    constructor(canvas) {
+    #onRendered;
+
+    connectedCallback() {
+        const canvas = document.createElement("canvas");
+        canvas.width = 800;
+        canvas.height = 800;
+        this.appendChild(canvas);
         this.#ctx = canvas.getContext("2d");
         this.#ctx.imageSmoothingEnabled = false;
         this.#scale = MIN_SCALE;
         this.#bitmap = null;
         this.#xoffset = 0;
         this.#yoffset = 0;
+
+        new Interactor(
+            canvas,
+            (dx, dy) => this.pan(dx, dy),
+            (x, y) => this.pixel_clicked(x, y),
+            (sign) => this.change_scale(sign));
+
+        // TODO this always means we show loading, even when we have
+        // an already existing bitmap in a Scene. Maybe try to get a good
+        // initial display if we have an existing, good bitmap.
+        // might have to use a global...
+        this.draw();
+        this.#onRendered = (e) => this.update_bitmap(e.detail.bitmap);
+        document.addEventListener("acre_plot_rendered", this.#onRendered);
+    }
+
+    disconnectedCallback() {
+        document.removeEventListener("acre_plot_rendered", this.#onRendered);
     }
 
     update_bitmap(bitmap) {
@@ -130,82 +200,6 @@ class Displayer {
             this.#yoffset,
             PLOT_SIZE * this.#scale,
             PLOT_SIZE * this.#scale);
-    }
-}
-
-class Interactor {
-    #isDown
-    #prevLeft
-    #prevTop
-    #isDragging
-
-    constructor(canvas, onDownMove, onClick, onZoom) {
-        this.#isDown = false
-        this.#isDragging = false
-        canvas.addEventListener('mousedown', (e) => {
-            e.preventDefault();
-            console.log("in mouse down");
-            this.#isDown = true
-            this.#prevLeft = e.pageX;
-            this.#prevTop = e.pageY;
-        });
-        canvas.addEventListener('mousemove', (e) => {
-            e.preventDefault();
-            if (!this.#isDown) {
-                return
-            }
-
-            console.log("in mouse move");
-            const dx = e.pageX - this.#prevLeft;
-            const dy = e.pageY - this.#prevTop;
-            this.#prevLeft = e.pageX;
-            this.#prevTop = e.pageY;
-            this.#isDragging = true;
-            onDownMove(dx, dy)
-        });
-        canvas.addEventListener('mouseup', (e) => {
-            e.preventDefault();
-            console.log("in mouse up");
-            if (this.#isDown && !this.#isDragging) {
-                onClick(e.offsetX, e.offsetY);
-            }
-            this.#isDown = false;
-            this.#isDragging = false;
-        })
-        canvas.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            onZoom(Math.sign(e.deltaY));
-        })
-    }
-}
-
-class AcrePlot extends HTMLElement {
-    #onRendered
-
-    connectedCallback() {
-        const canvas = document.createElement("canvas");
-        canvas.width = 800;
-        canvas.height = 800;
-        this.appendChild(canvas);
-
-        const displayer = new Displayer(canvas);
-        new Interactor(
-            canvas,
-            (dx, dy) => displayer.pan(dx, dy),
-            (x, y) => displayer.pixel_clicked(x, y),
-            (sign) => displayer.change_scale(sign));
-
-        // TODO this always means we show loading, even when we have
-        // an already existing bitmap in a Scene. Maybe try to get a good
-        // initial display if we have an existing, good bitmap.
-        // might have to use a global...
-        displayer.draw();
-        this.#onRendered = (e) => displayer.update_bitmap(e.detail.bitmap);
-        document.addEventListener("acre_plot_rendered", this.#onRendered);
-    }
-
-    disconnectedCallback() {
-        document.removeEventListener("acre_plot_rendered", this.#onRendered);
     }
 }
 
