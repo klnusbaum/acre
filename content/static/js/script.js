@@ -151,7 +151,7 @@ class AcrePlot extends HTMLElement {
 
     update_bitmap(bitmap) {
         this.#bitmap = bitmap
-        requestAnimationFrame(() => this.draw());
+        this.draw();
     }
 
     change_scale(sign) {
@@ -166,7 +166,7 @@ class AcrePlot extends HTMLElement {
         const min_offset = CANVAS_SIZE - this.#scale * PLOT_SIZE
         this.#xoffset = clamp(min_offset, 0, this.#xoffset + dx);
         this.#yoffset = clamp(min_offset, 0, this.#yoffset + dy);
-        requestAnimationFrame(() => this.draw());
+        this.draw();
     }
 
     pixel_clicked(canvasX, canvasY) {
@@ -181,11 +181,13 @@ class AcrePlot extends HTMLElement {
     }
 
     draw() {
-        if (this.#bitmap == null) {
-            this.#draw_loading();
-        } else {
-            this.#draw_plot();
-        }
+        requestAnimationFrame(() => {
+            if (this.#bitmap == null) {
+                this.#draw_loading();
+            } else {
+                this.#draw_plot();
+            }
+        });
     }
 
     #draw_loading() {
