@@ -139,7 +139,7 @@ class Interactor {
     #prevTop
     #isDragging
 
-    constructor(canvas, displayer) {
+    constructor(canvas, onDownMove, onClick, onZoom) {
         this.#isDown = false
         this.#isDragging = false
         canvas.addEventListener('mousedown', (e) => {
@@ -161,20 +161,20 @@ class Interactor {
             this.#prevLeft = e.pageX;
             this.#prevTop = e.pageY;
             this.#isDragging = true;
-            displayer.pan(dx, dy)
+            onDownMove(dx, dy)
         });
         canvas.addEventListener('mouseup', (e) => {
             e.preventDefault();
             console.log("in mouse up");
             if (this.#isDown && !this.#isDragging) {
-                displayer.pixel_clicked(e.offsetX, e.offsetY);
+                onClick(e.offsetX, e.offsetY);
             }
             this.#isDown = false;
             this.#isDragging = false;
         })
         canvas.addEventListener('wheel', (e) => {
             e.preventDefault();
-            displayer.change_scale(Math.sign(e.deltaY));
+            onZoom(Math.sign(e.deltaY));
         })
     }
 }
@@ -189,7 +189,11 @@ class AcrePlot extends HTMLElement {
         this.appendChild(canvas);
 
         const displayer = new Displayer(canvas);
-        new Interactor(canvas, displayer);
+        new Interactor(
+            canvas,
+            (dx, dy) => displayer.pan(dx, dy),
+            (x, y) => displayer.pixel_clicked(x, y),
+            (sign) => displayer.change_scale(sign));
 
         // TODO this always means we show loading, even when we have
         // an already existing bitmap in a Scene. Maybe try to get a good
