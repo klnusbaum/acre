@@ -15,7 +15,6 @@ class Interactor {
         this.#isDragging = false
         canvas.addEventListener('mousedown', (e) => {
             e.preventDefault();
-            console.log("in mouse down");
             this.#isDown = true
             this.#prevLeft = e.pageX;
             this.#prevTop = e.pageY;
@@ -26,7 +25,6 @@ class Interactor {
                 return
             }
 
-            console.log("in mouse move");
             const dx = e.pageX - this.#prevLeft;
             const dy = e.pageY - this.#prevTop;
             this.#prevLeft = e.pageX;
@@ -36,7 +34,6 @@ class Interactor {
         });
         canvas.addEventListener('mouseup', (e) => {
             e.preventDefault();
-            console.log("in mouse up");
             if (this.#isDown && !this.#isDragging) {
                 onClick(e.offsetX, e.offsetY);
             }
