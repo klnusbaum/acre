@@ -155,14 +155,15 @@ class AcrePlot extends HTMLElement {
     }
 
     change_scale(sign) {
-        this.#scale = clamp(MIN_SCALE, MAX_SCALE, this.#scale + sign * ZOOM_STEP);
-        // N.B. needed so that we move the scene back into proper bounds if need be.
-        // e.g. we're zooming out but currently in the furthest lower right hand corner.
-        // pan also calls requestAnimationFrame for us.
-        this.pan(0, 0);
+        this.#change_view(0, 0, sign * ZOOM_STEP);
     }
 
     pan(dx, dy) {
+        this.#change_view(dx, dy, 0);
+    }
+
+    #change_view(dx, dy, ds) {
+        this.#scale = clamp(MIN_SCALE, MAX_SCALE, this.#scale + ds);
         const min_offset = CANVAS_SIZE - this.#scale * PLOT_SIZE
         this.#xoffset = clamp(min_offset, 0, this.#xoffset + dx);
         this.#yoffset = clamp(min_offset, 0, this.#yoffset + dy);
