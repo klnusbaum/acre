@@ -209,8 +209,8 @@ class AcrePlot extends HTMLElement {
             this.#scene_data.bitmap,
             this.#xoffset,
             this.#yoffset,
-            PLOT_SIZE * this.#scale,
-            PLOT_SIZE * this.#scale);
+            this.#scene_data.plot_size * this.#scale,
+            this.#scene_data.plot_size * this.#scale);
     }
 }
 
