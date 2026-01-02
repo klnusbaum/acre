@@ -30,7 +30,7 @@ class Scene {
 
     constructor() {
         this.#ctx = new OffscreenCanvas(PLOT_SIZE, PLOT_SIZE).getContext("2d");
-        this.#plot = Array.from({ length: PLOT_SIZE * PLOT_SIZE }, random_color);
+        this.#plot = new Array(PLOT_SIZE * PLOT_SIZE).fill(0);
     }
 
     async render() {
@@ -55,11 +55,30 @@ class Scene {
         document.dispatchEvent(event);
     }
 
-    async set_acre(pos, color) {
-        this.#plot[pos] = color;
+    async set_acres(new_acres) {
+        for (const acre of new_acres) {
+            const pos = acre[0];
+            const color = acre[1];
+            this.#plot[pos] = color;
+        }
         await this.render();
     }
 }
 
 const scene = new Scene();
-setInterval(() => scene.set_acre(random_pos(), random_color()), UPDATE_RATE_MS);
+const rand_n_gen = () => {
+    return [
+        [random_pos(), random_color()],
+        [random_pos(), random_color()],
+        [random_pos(), random_color()],
+        [random_pos(), random_color()],
+        [random_pos(), random_color()],
+        [random_pos(), random_color()],
+        [random_pos(), random_color()],
+        [random_pos(), random_color()],
+        [random_pos(), random_color()],
+        [random_pos(), random_color()],
+    ]
+}
+
+setInterval(() => scene.set_acres(rand_n_gen()), UPDATE_RATE_MS);
