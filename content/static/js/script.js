@@ -120,8 +120,8 @@ class AcrePlot extends HTMLElement {
 
     connectedCallback() {
         const canvas = document.createElement("canvas");
-        canvas.width = 800;
-        canvas.height = 800;
+        canvas.width = CANVAS_SIZE;
+        canvas.height = CANVAS_SIZE;
         this.appendChild(canvas);
         this.#ctx = canvas.getContext("2d");
         this.#ctx.imageSmoothingEnabled = false;
