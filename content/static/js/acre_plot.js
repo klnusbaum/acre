@@ -74,16 +74,16 @@ class AcrePlot extends HTMLElement {
 
         new Interactor(
             canvas,
-            (dx, dy) => this.pan(dx, dy),
-            (x, y) => this.pixel_clicked(x, y),
-            (sign) => this.change_scale(sign));
+            (dx, dy) => this.#pan(dx, dy),
+            (x, y) => this.#pixel_clicked(x, y),
+            (sign) => this.#change_scale(sign));
 
         // TODO this always means we show loading, even when we have
         // an already existing bitmap in a Scene. Maybe try to get a good
         // initial display if we have an existing, good bitmap.
         // might have to use a global...
-        this.draw();
-        this.#onRendered = (e) => this.update_scene_data(e);
+        this.#draw();
+        this.#onRendered = (e) => this.#update_scene_data(e);
         document.addEventListener(ACRE_PLOT_UPDATE_EVENT, this.#onRendered);
     }
 
@@ -91,7 +91,7 @@ class AcrePlot extends HTMLElement {
         document.removeEventListener(ACRE_PLOT_UPDATE_EVENT, this.#onRendered);
     }
 
-    update_scene_data(e) {
+    #update_scene_data(e) {
         this.#scene_data = {
             bitmap: e.detail.bitmap,
             plot_size: e.detail.plot_size,
@@ -101,11 +101,11 @@ class AcrePlot extends HTMLElement {
         this.#change_view(0, 0, 0);
     }
 
-    change_scale(sign) {
+    #change_scale(sign) {
         this.#change_view(0, 0, sign * ZOOM_STEP);
     }
 
-    pan(dx, dy) {
+    #pan(dx, dy) {
         this.#change_view(dx, dy, 0);
     }
 
@@ -118,10 +118,10 @@ class AcrePlot extends HTMLElement {
         const min_offset = CANVAS_SIZE - this.#scale * this.#scene_data.plot_size;
         this.#xoffset = clamp(min_offset, 0, this.#xoffset + dx);
         this.#yoffset = clamp(min_offset, 0, this.#yoffset + dy);
-        this.draw();
+        this.#draw();
     }
 
-    pixel_clicked(canvasX, canvasY) {
+    #pixel_clicked(canvasX, canvasY) {
         const plotX = canvasX / this.#scale
         const plotY = canvasY / this.#scale
         document.dispatchEvent(new CustomEvent(ACRE_CLICKED_EVENT, {
@@ -132,7 +132,7 @@ class AcrePlot extends HTMLElement {
         }))
     }
 
-    draw() {
+    #draw() {
         requestAnimationFrame(() => {
             if (this.#scene_data == null) {
                 this.#draw_loading();
