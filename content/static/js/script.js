@@ -20,8 +20,6 @@ const ZOOM_STEP = 0.1;
 const PLOT_SIZE = 100;
 const UPDATE_RATE_MS = 100;
 const CANVAS_SIZE = 800;
-const MIN_SCALE = CANVAS_SIZE / PLOT_SIZE;
-const MAX_SCALE = 20
 
 const clamp = (min, max, val) => Math.min(max, Math.max(min, val));
 const random_color = () => Math.floor(Math.random() * COLORS.length);
@@ -52,6 +50,7 @@ class Scene {
         const event = new CustomEvent("acre_plot_rendered", {
             detail: {
                 bitmap: bitmap,
+                plot_size: PLOT_SIZE,
             }
         })
         document.dispatchEvent(event);
@@ -112,10 +111,10 @@ class Interactor {
 class AcrePlot extends HTMLElement {
     #ctx;
     #scale;
-    #bitmap;
     #xoffset;
     #yoffset;
 
+    #scene_data;
     #onRendered;
 
     connectedCallback() {
@@ -125,8 +124,8 @@ class AcrePlot extends HTMLElement {
         this.appendChild(canvas);
         this.#ctx = canvas.getContext("2d");
         this.#ctx.imageSmoothingEnabled = false;
-        this.#scale = MIN_SCALE;
-        this.#bitmap = null;
+        this.#scale = 1;
+        this.#scene_data = null;
         this.#xoffset = 0;
         this.#yoffset = 0;
 
@@ -141,7 +140,7 @@ class AcrePlot extends HTMLElement {
         // initial display if we have an existing, good bitmap.
         // might have to use a global...
         this.draw();
-        this.#onRendered = (e) => this.update_bitmap(e.detail.bitmap);
+        this.#onRendered = (e) => this.update_scene_data(e);
         document.addEventListener("acre_plot_rendered", this.#onRendered);
     }
 
@@ -149,9 +148,14 @@ class AcrePlot extends HTMLElement {
         document.removeEventListener("acre_plot_rendered", this.#onRendered);
     }
 
-    update_bitmap(bitmap) {
-        this.#bitmap = bitmap
-        this.draw();
+    update_scene_data(e) {
+        this.#scene_data = {
+            bitmap: e.detail.bitmap,
+            plot_size: e.detail.plot_size,
+            min_scale: CANVAS_SIZE / e.detail.plot_size,
+            max_scale: 20, // TODO figure out a good value for this
+        }
+        this.#change_view(0, 0, 0);
     }
 
     change_scale(sign) {
@@ -163,8 +167,12 @@ class AcrePlot extends HTMLElement {
     }
 
     #change_view(dx, dy, ds) {
-        this.#scale = clamp(MIN_SCALE, MAX_SCALE, this.#scale + ds);
-        const min_offset = CANVAS_SIZE - this.#scale * PLOT_SIZE
+        if (this.#scene_data == null) {
+            return
+        }
+
+        this.#scale = clamp(this.#scene_data.min_scale, this.#scene_data.max_scale, this.#scale + ds);
+        const min_offset = CANVAS_SIZE - this.#scale * this.#scene_data.plot_size;
         this.#xoffset = clamp(min_offset, 0, this.#xoffset + dx);
         this.#yoffset = clamp(min_offset, 0, this.#yoffset + dy);
         this.draw();
@@ -183,7 +191,7 @@ class AcrePlot extends HTMLElement {
 
     draw() {
         requestAnimationFrame(() => {
-            if (this.#bitmap == null) {
+            if (this.#scene_data == null) {
                 this.#draw_loading();
             } else {
                 this.#draw_plot();
@@ -198,7 +206,7 @@ class AcrePlot extends HTMLElement {
 
     #draw_plot() {
         this.#ctx.drawImage(
-            this.#bitmap,
+            this.#scene_data.bitmap,
             this.#xoffset,
             this.#yoffset,
             PLOT_SIZE * this.#scale,
