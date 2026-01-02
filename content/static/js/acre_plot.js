@@ -49,12 +49,16 @@ class Interactor {
 
 
 class AcrePlot extends HTMLElement {
+    // View
     #ctx;
     #scale;
     #xoffset;
     #yoffset;
 
+    // Scene
     #scene_data;
+
+    // Callbacks
     #onRendered;
 
     connectedCallback() {
