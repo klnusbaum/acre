@@ -48,8 +48,10 @@ class Scene {
         const bitmap = await createImageBitmap(imgData)
         const event = new CustomEvent(ACRE_PLOT_UPDATE_EVENT, {
             detail: {
-                bitmap: bitmap,
-                plot_size: PLOT_SIZE,
+                sceneState: {
+                    bitmap: bitmap,
+                    plot_size: PLOT_SIZE,
+                },
             }
         })
         document.dispatchEvent(event);

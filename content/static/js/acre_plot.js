@@ -93,10 +93,7 @@ class AcrePlot extends HTMLElement {
     }
 
     #update_scene_data(e) {
-        this.#sceneState = {
-            bitmap: e.detail.bitmap,
-            plot_size: e.detail.plot_size,
-        }
+        this.#sceneState = e.detail.sceneState;
         this.#change_view(0, 0, 0);
     }
 
