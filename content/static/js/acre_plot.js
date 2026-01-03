@@ -56,7 +56,7 @@ class AcrePlot extends HTMLElement {
     #yOffset;
 
     // Scene
-    #sceneData;
+    #sceneState;
 
     // Callbacks
     #onRendered;
@@ -69,9 +69,9 @@ class AcrePlot extends HTMLElement {
         this.#ctx = canvas.getContext("2d");
         this.#ctx.imageSmoothingEnabled = false;
         this.#scale = 1;
-        this.#sceneData = null;
         this.#xOffset = 0;
         this.#yOffset = 0;
+        this.#sceneState = null;
 
         new Interactor(
             canvas,
@@ -93,11 +93,9 @@ class AcrePlot extends HTMLElement {
     }
 
     #update_scene_data(e) {
-        this.#sceneData = {
+        this.#sceneState = {
             bitmap: e.detail.bitmap,
             plot_size: e.detail.plot_size,
-            min_scale: CANVAS_SIZE / e.detail.plot_size,
-            max_scale: 20, // TODO figure out a good value for this
         }
         this.#change_view(0, 0, 0);
     }
@@ -111,12 +109,15 @@ class AcrePlot extends HTMLElement {
     }
 
     #change_view(dx, dy, ds) {
-        if (this.#sceneData == null) {
+        if (this.#sceneState == null) {
             return
         }
 
-        this.#scale = clamp(this.#sceneData.min_scale, this.#sceneData.max_scale, this.#scale + ds);
-        const min_offset = CANVAS_SIZE - this.#scale * this.#sceneData.plot_size;
+        const min_offset = CANVAS_SIZE - this.#scale * this.#sceneState.plot_size;
+        const min_scale = CANVAS_SIZE / this.#sceneState.plot_size;
+        const max_scale = 20; // TODO figure out a good value for this
+
+        this.#scale = clamp(min_scale, max_scale, this.#scale + ds);
         this.#xOffset = clamp(min_offset, 0, this.#xOffset + dx);
         this.#yOffset = clamp(min_offset, 0, this.#yOffset + dy);
         this.#draw();
@@ -135,7 +136,7 @@ class AcrePlot extends HTMLElement {
 
     #draw() {
         requestAnimationFrame(() => {
-            if (this.#sceneData == null) {
+            if (this.#sceneState == null) {
                 this.#draw_loading();
             } else {
                 this.#draw_plot();
@@ -150,11 +151,11 @@ class AcrePlot extends HTMLElement {
 
     #draw_plot() {
         this.#ctx.drawImage(
-            this.#sceneData.bitmap,
+            this.#sceneState.bitmap,
             this.#xOffset,
             this.#yOffset,
-            this.#sceneData.plot_size * this.#scale,
-            this.#sceneData.plot_size * this.#scale);
+            this.#sceneState.plot_size * this.#scale,
+            this.#sceneState.plot_size * this.#scale);
     }
 }
 
