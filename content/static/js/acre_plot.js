@@ -121,12 +121,12 @@ class AcrePlot extends HTMLElement {
     }
 
     #pixel_clicked(canvasX, canvasY) {
-        const plotX = canvasX / this.#scale
-        const plotY = canvasY / this.#scale
+        const plotX = Math.floor(canvasX / this.#scale);
+        const plotY = Math.floor(canvasY / this.#scale);
         document.dispatchEvent(new CustomEvent(ACRE_CLICKED_EVENT, {
             detail: {
-                x: Math.floor(plotX),
-                y: Math.floor(plotY),
+                x: plotX,
+                y: plotY,
             }
         }))
     }
