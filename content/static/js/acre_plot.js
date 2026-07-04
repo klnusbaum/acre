@@ -4,48 +4,48 @@ const ZOOM_STEP = 0.1;
 const clamp = (min, max, val) => Math.min(max, Math.max(min, val));
 
 class Interactor {
-    #isDown
-    #prevLeft
-    #prevTop
+    #currentPoints
     #isDragging
 
-    constructor(canvas, onDownMove, onClick, onZoom) {
-        this.#isDown = false
-        this.#isDragging = false
-        canvas.addEventListener('mousedown', (e) => {
-            e.preventDefault();
-            this.#isDown = true
-            this.#prevLeft = e.pageX;
-            this.#prevTop = e.pageY;
-        });
-        canvas.addEventListener('mousemove', (e) => {
-            e.preventDefault();
-            if (!this.#isDown) {
-                return
-            }
+    constructor(canvas, onMove, onClick, onZoom) {
+        this.#currentPoints = new Map();
+        this.#isDragging = true;
 
-            const dx = e.pageX - this.#prevLeft;
-            const dy = e.pageY - this.#prevTop;
-            this.#prevLeft = e.pageX;
-            this.#prevTop = e.pageY;
-            this.#isDragging = true;
-            onDownMove(dx, dy)
-        });
-        canvas.addEventListener('mouseup', (e) => {
+        // Primary Events
+        canvas.addEventListener('pointerdown', (e) => {
             e.preventDefault();
-            if (this.#isDown && !this.#isDragging) {
+            this.#currentPoints.set(e.pointerId, e);
+        });
+        canvas.addEventListener('pointermove', (e) => {
+            e.preventDefault();
+            if (this.#currentPoints.size == 1) {
+                const dx = e.pageX - this.#currentPoints.get(e.pointerId).pageX;
+                const dy = e.pageY - this.#currentPoints.get(e.pointerId).pageY;
+                this.#currentPoints.set(e.pointerId, e);
+                this.#isDragging = true;
+                onMove(dx, dy)
+            } else if (this.#currentPoints.size > 1) {
+                // TODO pinch to zoom
+            }
+        });
+        const removePointer = (e) => {
+            e.preventDefault();
+            if (!this.#isDragging) {
                 onClick(e.offsetX, e.offsetY);
             }
-            this.#isDown = false;
             this.#isDragging = false;
-        })
+            this.#currentPoints.delete(e.pointerId);
+        }
+        canvas.addEventListener('pointerup', removePointer);
+        canvas.addEventListener('pointercancel', removePointer);
+
+        // Mouse wheel zoom
         canvas.addEventListener('wheel', (e) => {
             e.preventDefault();
             onZoom(Math.sign(e.deltaY));
         })
     }
 }
-
 
 class AcrePlot extends HTMLElement {
     // View
