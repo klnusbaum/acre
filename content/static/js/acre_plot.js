@@ -2,6 +2,7 @@ import { ACRE_PLOT_UPDATE_EVENT, ACRE_CLICKED_EVENT } from "./acre_lib.js";
 const ZOOM_STEP = 0.1;
 
 const clamp = (min, max, val) => Math.min(max, Math.max(min, val));
+const dist = (p1, p2) => Math.hypot(p1.pageX - p2.pageX, p1.pageY - p2.pageY);
 
 class Interactor {
     #currentPoints
@@ -25,7 +26,12 @@ class Interactor {
                 this.#isDragging = true;
                 onMove(dx, dy)
             } else if (this.#currentPoints.size > 1) {
-                // TODO pinch to zoom
+                const [prev1, prev2] = this.#currentPoints.values()
+                const prevDist = dist(prev1, prev2);
+                this.#currentPoints.set(e.pointerId, e);
+                const [new1, new2] = this.#currentPoints.values()
+                const newDist = dist(new1, new2);
+                onZoom(Math.sign(newDist - prevDist));
             }
         });
         const removePointer = (e) => {

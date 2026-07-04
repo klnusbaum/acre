@@ -1,8 +1,13 @@
+canvas {
+    touch-action: none;
+}
+
 body {
     margin: 0;
     height: 100dvh;
     width: 100dvw;
     display: grid;
+    background-color: blue;
     grid-template-rows: 50px 1fr 50px;
 }
 
