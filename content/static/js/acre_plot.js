@@ -1,6 +1,5 @@
 import { ACRE_PLOT_UPDATE_EVENT, ACRE_CLICKED_EVENT } from "./acre_lib.js";
 const ZOOM_STEP = 0.1;
-const CANVAS_SIZE = 800;
 
 const clamp = (min, max, val) => Math.min(max, Math.max(min, val));
 
@@ -50,6 +49,7 @@ class Interactor {
 
 class AcrePlot extends HTMLElement {
     // View
+    #canvas;
     #ctx;
     #scale;
     #xOffset;
@@ -60,13 +60,13 @@ class AcrePlot extends HTMLElement {
 
     // Callbacks
     #onRendered;
+    #resizeObserver;
 
     connectedCallback() {
-        const canvas = document.createElement("canvas");
-        canvas.width = CANVAS_SIZE;
-        canvas.height = CANVAS_SIZE;
-        this.appendChild(canvas);
-        this.#ctx = canvas.getContext("2d");
+        this.#canvas = document.createElement("canvas");
+        this.#canvas.width = 0;
+        this.#canvas.height = 0;
+        this.#ctx = this.#canvas.getContext("2d");
         this.#ctx.imageSmoothingEnabled = false;
         this.#scale = 1;
         this.#xOffset = 0;
@@ -74,21 +74,33 @@ class AcrePlot extends HTMLElement {
         this.#sceneState = null;
 
         new Interactor(
-            canvas,
+            this.#canvas,
             (dx, dy) => this.#pan(dx, dy),
             (x, y) => this.#pixel_clicked(x, y),
             (sign) => this.#change_scale(sign));
 
-        // TODO this always means we show loading, even when we have
+        this.appendChild(this.#canvas);
+
+        // TODO because we don't initialize scene data to anything,
+        // this always means we show loading, even when we have
         // an already existing bitmap in a Scene. Maybe try to get a good
         // initial display if we have an existing, good bitmap.
         // might have to use a global...
-        this.#draw();
+
         this.#onRendered = (e) => this.#update_scene_data(e);
         document.addEventListener(ACRE_PLOT_UPDATE_EVENT, this.#onRendered);
+
+        this.#resizeObserver = new ResizeObserver((entries) => {
+            this.#canvas.width = entries[0].contentRect.width;
+            this.#canvas.height = entries[0].contentRect.height;
+            this.#ctx.imageSmoothingEnabled = false;
+            this.#change_view(0, 0, 0);
+        });
+        this.#resizeObserver.observe(this);
     }
 
     disconnectedCallback() {
+        this.#resizeObserver.unobserve(this);
         document.removeEventListener(ACRE_PLOT_UPDATE_EVENT, this.#onRendered);
     }
 
@@ -110,8 +122,8 @@ class AcrePlot extends HTMLElement {
             return
         }
 
-        const min_offset = CANVAS_SIZE - this.#scale * this.#sceneState.plot_size;
-        const min_scale = CANVAS_SIZE / this.#sceneState.plot_size;
+        const min_offset = this.#canvas.width - this.#scale * this.#sceneState.plot_size;
+        const min_scale = this.#canvas.width / this.#sceneState.plot_size;
         const max_scale = 20; // TODO figure out a good value for this
 
         this.#scale = clamp(min_scale, max_scale, this.#scale + ds);

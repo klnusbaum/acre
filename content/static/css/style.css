@@ -1,11 +1,26 @@
 body {
     margin: 0;
-}
-
-main#app {
-    display: flex;
-    justify-content: center;
-    align-items: center;
     height: 100vh;
     width: 100vw;
+    display: grid;
+    grid-template-rows: 50px 1fr 50px;
+}
+
+header,
+footer {
+    width: 100%;
+    background-color: blue;
+}
+
+main {
+    background-color: red;
+    min-height: 0;
+    display: grid;
+    place-items: center;
+    container-type: size;
+}
+
+#primary-plot {
+    width: 100cqmin;
+    height: 100cqmin;
 }
