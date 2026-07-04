@@ -18,7 +18,7 @@ const COLORS = [
     [207, 110, 228],
     [130, 0, 128]
 ]
-const PLOT_SIZE = 100;
+const PLOT_SIZE = 1000;
 const UPDATE_RATE_MS = 100;
 
 const random_color = () => Math.floor(Math.random() * COLORS.length);
@@ -69,18 +69,7 @@ class Scene {
 
 const scene = new Scene();
 const rand_n_gen = () => {
-    return [
-        [random_pos(), random_color()],
-        [random_pos(), random_color()],
-        [random_pos(), random_color()],
-        [random_pos(), random_color()],
-        [random_pos(), random_color()],
-        [random_pos(), random_color()],
-        [random_pos(), random_color()],
-        [random_pos(), random_color()],
-        [random_pos(), random_color()],
-        [random_pos(), random_color()],
-    ]
+    return Array.from({ length: 100 }, (_) => [random_pos(), random_color()]);
 }
 
 setInterval(() => scene.set_acres(rand_n_gen()), UPDATE_RATE_MS);
