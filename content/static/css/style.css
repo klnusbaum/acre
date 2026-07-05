@@ -8,6 +8,7 @@ body {
     width: 100dvw;
     display: grid;
     grid-template-rows: 50px 1fr 50px;
+    font-family: Arial, sans-serif;
 }
 
 header,
