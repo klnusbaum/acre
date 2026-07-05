@@ -35,9 +35,7 @@ class Scene {
 
     async set_acres(new_acres) {
         for (const acre of new_acres) {
-            const pos = acre[0];
-            const color = acre[1];
-            this.#plot[pos] = color;
+            this.#plot[acre.pos] = acre.color;
         }
         await this.render();
     }
