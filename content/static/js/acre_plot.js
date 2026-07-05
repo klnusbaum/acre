@@ -151,11 +151,6 @@ class AcrePlot extends HTMLElement {
         });
     }
 
-    #draw_loading() {
-        this.#ctx.font = "28px sans-serif";
-        this.#ctx.fillText("Loading...", 0, 28);
-    }
-
     #draw_plot() {
         this.#ctx.drawImage(
             this.#sceneState.bitmap,
