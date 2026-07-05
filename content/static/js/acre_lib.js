@@ -1,3 +1,6 @@
+export const LATEST_PLOT_SCENE = {
+    sceneState: null,
+};
 export const ACRE_PLOT_UPDATE_EVENT = "acre-plot-update";
 export const ACRE_CLICKED_EVENT = "acre-clicked";
 export const ACRE_SCENE_UPDATE_EVENT = "acre-scene-update";

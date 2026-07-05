@@ -1,4 +1,4 @@
-import { ACRE_PLOT_UPDATE_EVENT, ACRE_CLICKED_EVENT } from "./acre_lib.js";
+import { LATEST_PLOT_SCENE, ACRE_PLOT_UPDATE_EVENT, ACRE_CLICKED_EVENT } from "./acre_lib.js";
 const ZOOM_STEP = 0.1;
 
 const clamp = (min, max, val) => Math.min(max, Math.max(min, val));
@@ -77,7 +77,7 @@ class AcrePlot extends HTMLElement {
         this.#scale = 1;
         this.#xOffset = 0;
         this.#yOffset = 0;
-        this.#sceneState = null;
+        this.#sceneState = LATEST_PLOT_SCENE.sceneState;
 
         new Interactor(
             this.#canvas,
@@ -86,12 +86,6 @@ class AcrePlot extends HTMLElement {
             (sign) => this.#change_scale(sign));
 
         this.appendChild(this.#canvas);
-
-        // TODO because we don't initialize scene data to anything,
-        // this always means we show loading, even when we have
-        // an already existing bitmap in a Scene. Maybe try to get a good
-        // initial display if we have an existing, good bitmap.
-        // might have to use a global...
 
         this.#onRendered = (e) => this.#update_scene_data(e);
         document.addEventListener(ACRE_PLOT_UPDATE_EVENT, this.#onRendered);
@@ -151,9 +145,7 @@ class AcrePlot extends HTMLElement {
 
     #draw() {
         requestAnimationFrame(() => {
-            if (this.#sceneState == null) {
-                this.#draw_loading();
-            } else {
+            if (this.#sceneState != null) {
                 this.#draw_plot();
             }
         });

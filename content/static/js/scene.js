@@ -1,4 +1,4 @@
-import { COLORS, PLOT_SIZE, ACRE_PLOT_UPDATE_EVENT, ACRE_SCENE_UPDATE_EVENT } from "./acre_lib.js";
+import { LATEST_PLOT_SCENE, COLORS, PLOT_SIZE, ACRE_PLOT_UPDATE_EVENT, ACRE_SCENE_UPDATE_EVENT } from "./acre_lib.js";
 
 class Scene {
     #plot
@@ -21,13 +21,14 @@ class Scene {
             imgData.data[ipos + 3] = 255;
         }
 
-        const bitmap = await createImageBitmap(imgData)
+        LATEST_PLOT_SCENE.sceneState = {
+            bitmap: await createImageBitmap(imgData),
+            plot_size: PLOT_SIZE,
+        }
+
         const event = new CustomEvent(ACRE_PLOT_UPDATE_EVENT, {
             detail: {
-                sceneState: {
-                    bitmap: bitmap,
-                    plot_size: PLOT_SIZE,
-                },
+                sceneState: LATEST_PLOT_SCENE.sceneState,
             }
         })
         document.dispatchEvent(event);
