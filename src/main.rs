@@ -1,5 +1,6 @@
 mod plot;
 
+use maud::{Markup, html};
 use std::convert::Infallible;
 
 use axum::{
@@ -15,6 +16,7 @@ use tower_http::services::ServeDir;
 async fn main() {
     let app = Router::new()
         .route("/changes", get(changes))
+        .route("/plot", get(plot))
         .fallback_service(ServeDir::new("content"));
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await.unwrap();
     axum::serve(listener, app).await.unwrap();
@@ -22,4 +24,13 @@ async fn main() {
 async fn changes() -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
     let stream = plot::change_streamer().map(Ok);
     Sse::new(stream).keep_alive(KeepAlive::default())
+}
+
+async fn plot() -> Markup {
+    html! {
+        form.plot-holder.max-holder {
+            acre-plot {
+            }
+        }
+    }
 }

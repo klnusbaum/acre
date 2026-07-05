@@ -13,9 +13,9 @@
 <body>
     <header></header>
     <main id="app">
-        <form class="plot-holder max-holder">
-            <acre-plot></acre-plot>
-        </form>
+        <p hx-get="/plot" hx-target="#app" hx-trigger="acre-plot-update from:document">
+            Loading...
+        </p>
     </main>
     <footer></footer>
     <script type="module" src="/static/js/scene.js"></script>

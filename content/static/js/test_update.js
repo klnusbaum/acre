@@ -1,5 +1,5 @@
 import { COLORS, PLOT_SIZE, ACRE_SCENE_UPDATE_EVENT } from "./acre_lib.js";
-const UPDATE_RATE_MS = 100;
+const UPDATE_RATE_MS = 1000;
 
 const random_color = () => Math.floor(Math.random() * COLORS.length);
 const random_pos = () => Math.floor(Math.random() * PLOT_SIZE * PLOT_SIZE);
