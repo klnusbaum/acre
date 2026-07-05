@@ -1,28 +1,4 @@
-import { ACRE_PLOT_UPDATE_EVENT } from "./acre_lib.js";
-
-const COLORS = [
-    [255, 255, 255],
-    [228, 228, 228],
-    [136, 136, 136],
-    [34, 34, 34],
-    [229, 0, 0],
-    [255, 167, 209],
-    [229, 149, 0],
-    [160, 106, 66],
-    [229, 217, 0],
-    [148, 224, 68],
-    [2, 190, 1],
-    [0, 211, 221],
-    [0, 131, 199],
-    [0, 0, 234],
-    [207, 110, 228],
-    [130, 0, 128]
-]
-const PLOT_SIZE = 1000;
-const UPDATE_RATE_MS = 100;
-
-const random_color = () => Math.floor(Math.random() * COLORS.length);
-const random_pos = () => Math.floor(Math.random() * PLOT_SIZE * PLOT_SIZE);
+import { COLORS, PLOT_SIZE, ACRE_PLOT_UPDATE_EVENT, ACRE_SCENE_UPDATE_EVENT } from "./acre_lib.js";
 
 class Scene {
     #plot
@@ -67,9 +43,9 @@ class Scene {
     }
 }
 
-const scene = new Scene();
-const rand_n_gen = () => {
-    return Array.from({ length: 100 }, (_) => [random_pos(), random_color()]);
-}
 
-setInterval(() => scene.set_acres(rand_n_gen()), UPDATE_RATE_MS);
+const scene = new Scene();
+document.addEventListener(ACRE_SCENE_UPDATE_EVENT, (e) => {
+    scene.set_acres(e.detail.acres);
+})
+
