@@ -39,18 +39,26 @@ async fn changes() -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
 
 async fn plot(headers: HeaderMap) -> Markup {
     if headers.is_htmx_request() {
-        html! {
-            form.plot-holder.max-holder hx-get="acres" hx-target="#app" hx-push-url="true" {
-                acre-plot {}
-            }
-        }
+        max_plot()
     } else {
-        full_app(html! {
-            h1 hx-get="/" hx-target="#app" hx-trigger="acre-plot-update from:document"{
-                "Loading..."
-            }
-        })
+        load_max_plot()
     }
+}
+
+fn max_plot() -> Markup {
+    html! {
+        form.plot-holder.max-holder hx-get="acres" hx-target="#app" hx-push-url="true" {
+            acre-plot {}
+        }
+    }
+}
+
+fn load_max_plot() -> Markup {
+    full_app(html! {
+        h1 hx-get="/" hx-target="#app" hx-trigger="acre-plot-update from:document"{
+            "Loading..."
+        }
+    })
 }
 
 async fn acres(headers: HeaderMap, Query(acre_coords): Query<AcreCoords>) -> Markup {
@@ -63,9 +71,10 @@ async fn acres(headers: HeaderMap, Query(acre_coords): Query<AcreCoords>) -> Mar
         }
     };
 
-    match headers.is_htmx_request() {
-        true => editor,
-        false => full_app(editor),
+    if headers.is_htmx_request() {
+        editor
+    } else {
+        full_app(editor)
     }
 }
 
@@ -94,11 +103,11 @@ fn full_app(app_content: Markup) -> Markup {
     }
 }
 
-trait HeaderExt {
+trait HTMXHeaderExt {
     fn is_htmx_request(&self) -> bool;
 }
 
-impl HeaderExt for HeaderMap {
+impl HTMXHeaderExt for HeaderMap {
     fn is_htmx_request(&self) -> bool {
         self.contains_key("HX-Request")
     }
