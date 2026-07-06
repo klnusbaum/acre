@@ -68,6 +68,13 @@ class AcrePlot extends HTMLElement {
     #onRendered;
     #resizeObserver;
 
+    static formAssociated = true;
+
+    constructor() {
+        super();
+        this.internals = this.attachInternals();
+    }
+
     connectedCallback() {
         this.#canvas = document.createElement("canvas");
         this.#canvas.width = 0;
@@ -152,13 +159,11 @@ class AcrePlot extends HTMLElement {
     #pixel_clicked(canvasX, canvasY) {
         const plotX = Math.floor((canvasX - this.#xOffset) / this.#scale);
         const plotY = Math.floor((canvasY - this.#yOffset) / this.#scale);
-
-        document.dispatchEvent(new CustomEvent(ACRE_CLICKED_EVENT, {
-            detail: {
-                x: plotX,
-                y: plotY,
-            }
-        }))
+        const formData = new FormData()
+        formData.set("x", plotX);
+        formData.set("y", plotY);
+        this.internals.setFormValue(formData);
+        this.internals.form?.requestSubmit();
     }
 }
 
