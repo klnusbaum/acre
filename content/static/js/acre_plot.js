@@ -23,6 +23,16 @@ class Interactor {
             if (this.#currentPoints.size == 0) {
                 return
             }
+            if (this.#currentPoints.size == 1 &&
+                e.pageX == this.#currentPoints.get(e.pointerId).pageX &&
+                e.pageY == this.#currentPoints.get(e.pointerId).pageY
+            ) {
+                // N.B.
+                // on mobile, we get moved events even when the page coordinates
+                // didn't change.
+                // That's not really a move...
+                return
+            }
 
             this.#isDragging = true;
             if (this.#currentPoints.size == 1) {
