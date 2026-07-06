@@ -125,6 +125,9 @@ class AcrePlot extends HTMLElement {
     }
 
     #change_view(dx, dy, ds) {
+        if (this.#sceneState == null) {
+            return
+        }
         const min_offset = this.#canvas.width - this.#scale * this.#sceneState.plot_size;
         const min_scale = this.#canvas.width / this.#sceneState.plot_size;
         const max_scale = 20; // TODO figure out a good value for this
@@ -137,9 +140,6 @@ class AcrePlot extends HTMLElement {
 
     #draw() {
         requestAnimationFrame(() => {
-            if (this.#sceneState == null) {
-                return
-            }
             this.#ctx.drawImage(
                 this.#sceneState.bitmap,
                 this.#xOffset,
