@@ -1,6 +1,6 @@
 mod plot;
 
-use maud::{Markup, html};
+use maud::{DOCTYPE, Markup, html};
 use std::convert::Infallible;
 
 use serde::Deserialize;
@@ -8,6 +8,7 @@ use serde::Deserialize;
 use axum::{
     Router,
     extract::Query,
+    http::HeaderMap,
     response::sse::{Event, KeepAlive, Sse},
     routing::get,
 };
@@ -25,7 +26,7 @@ struct AcreCoords {
 async fn main() {
     let app = Router::new()
         .route("/changes", get(changes))
-        .route("/plot", get(plot))
+        .route("/", get(plot))
         .route("/acres", get(acres))
         .fallback_service(ServeDir::new("content"));
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await.unwrap();
@@ -36,22 +37,69 @@ async fn changes() -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
     Sse::new(stream).keep_alive(KeepAlive::default())
 }
 
-async fn plot() -> Markup {
+async fn plot(headers: HeaderMap) -> Markup {
+    if headers.is_htmx_request() {
+        html! {
+            form.plot-holder.max-holder hx-get="acres" hx-target="#app" hx-push-url="true" {
+                acre-plot {}
+            }
+        }
+    } else {
+        full_app(html! {
+            h1 hx-get="/" hx-target="#app" hx-trigger="acre-plot-update from:document"{
+                "Loading..."
+            }
+        })
+    }
+}
+
+async fn acres(headers: HeaderMap, Query(acre_coords): Query<AcreCoords>) -> Markup {
+    let editor = html! {
+        div.acre-editor{
+            h1{
+                "Editing Acre " (&acre_coords.x) "," (&acre_coords.y)
+            }
+            button hx-get="/" hx-target="#app" hx-push-url="true" { "return" }
+        }
+    };
+
+    match headers.is_htmx_request() {
+        true => editor,
+        false => full_app(editor),
+    }
+}
+
+fn full_app(app_content: Markup) -> Markup {
     html! {
-        form.plot-holder.max-holder hx-get="acres" hx-target="#app" hx-push-url="true" {
-            acre-plot {
+        (DOCTYPE)
+        html {
+            head {
+                meta charset="utf8"{}
+                meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"{}
+                link rel="stylesheet" href="/static/css/style.css" {}
+                script type="module" src="/static/js/acre_plot.js"{}
+                script type="module" src="/static/js/htmx.min.js" {}
+                title { "Acre" }
+            }
+            body {
+                header {}
+                main id="app" {
+                    (app_content)
+                }
+                footer {}
+                script type="module" src="/static/js/scene.js" {}
+                script type="module" src="/static/js/test_update.js" {}
             }
         }
     }
 }
 
-async fn acres(Query(acre_coords): Query<AcreCoords>) -> Markup {
-    html! {
-        div.acre-editor{
-            h1{
-                "Editing Acre " (&acre_coords.x) "," (&acre_coords.y)
-            }
-            button hx-get="/plot" hx-target="#app" hx-push-url="true" { "return" }
-        }
+trait HeaderExt {
+    fn is_htmx_request(&self) -> bool;
+}
+
+impl HeaderExt for HeaderMap {
+    fn is_htmx_request(&self) -> bool {
+        self.contains_key("HX-Request")
     }
 }
