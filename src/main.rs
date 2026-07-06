@@ -38,7 +38,7 @@ async fn changes() -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
 
 async fn plot() -> Markup {
     html! {
-        form.plot-holder.max-holder hx-get="acres" hx-target="#app"{
+        form.plot-holder.max-holder hx-get="acres" hx-target="#app" hx-push-url="true" {
             acre-plot {
             }
         }
@@ -51,7 +51,7 @@ async fn acres(Query(acre_coords): Query<AcreCoords>) -> Markup {
             h1{
                 "Editing Acre " (&acre_coords.x) "," (&acre_coords.y)
             }
-            button hx-get="plot" hx-target="#app" { "back" }
+            button hx-get="/plot" hx-target="#app" hx-push-url="true" { "return" }
         }
     }
 }
