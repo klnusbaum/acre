@@ -19,11 +19,16 @@ class Interactor {
         });
         canvas.addEventListener('pointermove', (e) => {
             e.preventDefault();
+
+            if (this.#currentPoints.size == 0) {
+                return
+            }
+
+            this.#isDragging = true;
             if (this.#currentPoints.size == 1) {
                 const dx = e.pageX - this.#currentPoints.get(e.pointerId).pageX;
                 const dy = e.pageY - this.#currentPoints.get(e.pointerId).pageY;
                 this.#currentPoints.set(e.pointerId, e);
-                this.#isDragging = true;
                 onMove(dx, dy)
             } else if (this.#currentPoints.size > 1) {
                 const [prev1, prev2] = this.#currentPoints.values()
@@ -39,8 +44,10 @@ class Interactor {
             if (!this.#isDragging) {
                 onClick(e.offsetX, e.offsetY);
             }
-            this.#isDragging = false;
             this.#currentPoints.delete(e.pointerId);
+            if (this.#currentPoints.size == 0) {
+                this.#isDragging = false;
+            }
         }
         canvas.addEventListener('pointerup', removePointer);
         canvas.addEventListener('pointercancel', removePointer);
