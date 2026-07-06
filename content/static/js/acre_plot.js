@@ -74,7 +74,7 @@ class AcrePlot extends HTMLElement {
         this.#canvas.height = 0;
         this.#ctx = this.#canvas.getContext("2d");
         this.#ctx.imageSmoothingEnabled = false;
-        this.#scale = 1;
+        this.#scale = 0;
         this.#xOffset = 0;
         this.#yOffset = 0;
         this.#sceneState = LATEST_PLOT_SCENE.sceneState;
@@ -132,17 +132,6 @@ class AcrePlot extends HTMLElement {
         this.#draw();
     }
 
-    #pixel_clicked(canvasX, canvasY) {
-        const plotX = Math.floor(canvasX / this.#scale);
-        const plotY = Math.floor(canvasY / this.#scale);
-        document.dispatchEvent(new CustomEvent(ACRE_CLICKED_EVENT, {
-            detail: {
-                x: plotX,
-                y: plotY,
-            }
-        }))
-    }
-
     #draw() {
         requestAnimationFrame(() => {
             if (this.#sceneState != null) {
@@ -158,6 +147,18 @@ class AcrePlot extends HTMLElement {
             this.#yOffset,
             this.#sceneState.plot_size * this.#scale,
             this.#sceneState.plot_size * this.#scale);
+    }
+
+    #pixel_clicked(canvasX, canvasY) {
+        const plotX = Math.floor((canvasX - this.#xOffset) / this.#scale);
+        const plotY = Math.floor((canvasY - this.#yOffset) / this.#scale);
+
+        document.dispatchEvent(new CustomEvent(ACRE_CLICKED_EVENT, {
+            detail: {
+                x: plotX,
+                y: plotY,
+            }
+        }))
     }
 }
 
