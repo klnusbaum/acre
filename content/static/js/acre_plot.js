@@ -10,7 +10,7 @@ class Interactor {
 
     constructor(canvas, onMove, onClick, onZoom) {
         this.#currentPoints = new Map();
-        this.#isDragging = true;
+        this.#isDragging = false;
 
         // Primary Events
         canvas.addEventListener('pointerdown', (e) => {
