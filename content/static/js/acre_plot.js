@@ -1,4 +1,4 @@
-import { LATEST_PLOT_SCENE, ACRE_PLOT_UPDATE_EVENT, ACRE_CLICKED_EVENT } from "./acre_lib.js";
+import { LATEST_PLOT_SCENE, ACRE_PLOT_UPDATE_EVENT } from "./acre_lib.js";
 const ZOOM_STEP = 0.1;
 
 const clamp = (min, max, val) => Math.min(max, Math.max(min, val));
