@@ -86,6 +86,7 @@ fn full_app(app_content: Markup) -> Markup {
                 meta charset="utf8"{}
                 meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"{}
                 link rel="stylesheet" href="/static/css/style.css" {}
+                link rel="icon" href="/favicon.svg" type="image/svg+xml" {}
                 script type="module" src="/static/js/acre_plot.js"{}
                 script type="module" src="/static/js/htmx.min.js" {}
                 title { "Acre" }
