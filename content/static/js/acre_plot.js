@@ -51,9 +51,14 @@ class Interactor {
         });
         const removePointer = (e) => {
             e.preventDefault();
+            if (this.#currentPoints.size == 0) {
+                return
+            }
+
             if (!this.#isDragging) {
                 onClick(e.offsetX, e.offsetY);
             }
+
             this.#currentPoints.delete(e.pointerId);
             if (this.#currentPoints.size == 0) {
                 this.#isDragging = false;
@@ -61,6 +66,7 @@ class Interactor {
         }
         canvas.addEventListener('pointerup', removePointer);
         canvas.addEventListener('pointercancel', removePointer);
+        canvas.addEventListener('pointerleave', removePointer);
 
         // Mouse wheel zoom
         canvas.addEventListener('wheel', (e) => {
