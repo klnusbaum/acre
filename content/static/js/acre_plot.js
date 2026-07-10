@@ -127,7 +127,7 @@ class AcrePlot extends HTMLElement {
         this.#onRendered = (e) => this.#update_scene_data(e);
         document.addEventListener(ACRE_PLOT_UPDATE_EVENT, this.#onRendered);
 
-        this.#resizeObserver = new ResizeObserver(([entry]) => this.#canvas_resize(entry))
+        this.#resizeObserver = new ResizeObserver(([entry]) => this.#canvas_resize(entry.contentRect))
         this.#resizeObserver.observe(this.#canvas);
     }
 
@@ -136,15 +136,14 @@ class AcrePlot extends HTMLElement {
         document.removeEventListener(ACRE_PLOT_UPDATE_EVENT, this.#onRendered);
     }
 
-    #canvas_resize(entry) {
-        this.#canvas.width = entry.contentRect.width;
-        this.#canvas.height = entry.contentRect.height;
+    #canvas_resize(contentRect) {
+        this.#canvas.width = contentRect.width;
+        this.#canvas.height = contentRect.height;
         this.#ctx.imageSmoothingEnabled = false;
         this.#update_view(() => {
             this.#clamp_scale()
             this.#clamp_offsets();
         });
-
     }
 
     #update_scene_data(e) {
