@@ -44,9 +44,16 @@ class Interactor {
                 const [prev1, prev2] = this.#currentPoints.values()
                 const prevDist = dist(prev1, prev2);
                 this.#currentPoints.set(e.pointerId, e);
+
                 const [new1, new2] = this.#currentPoints.values()
                 const newDist = dist(new1, new2);
-                onZoom(Math.sign(newDist - prevDist));
+                const anchorX = (new1.offsetX + new2.offsetX) / 2;
+                const anchorY = (new1.offsetY + new2.offsetY) / 2;
+                onZoom({
+                    direction: Math.sign(newDist - prevDist),
+                    anchorX: anchorX,
+                    anchorY: anchorY,
+                });
             }
         });
         const removePointer = (e) => {
@@ -71,7 +78,11 @@ class Interactor {
         // Mouse wheel zoom
         canvas.addEventListener('wheel', (e) => {
             e.preventDefault();
-            onZoom(Math.sign(e.deltaY));
+            onZoom({
+                direction: Math.sign(e.deltaY),
+                anchorX: e.offsetX,
+                anchorY: e.offsetY,
+            });
         })
     }
 }
@@ -113,7 +124,7 @@ class AcrePlot extends HTMLElement {
             this.#canvas,
             (dx, dy) => this.#pan(dx, dy),
             (x, y) => this.#acre_clicked(x, y),
-            (sign) => this.#change_scale(sign));
+            (dZoom) => this.#zoom(dZoom));
 
         this.appendChild(this.#canvas);
 
@@ -124,7 +135,10 @@ class AcrePlot extends HTMLElement {
             this.#canvas.width = entry.contentRect.width;
             this.#canvas.height = entry.contentRect.height;
             this.#ctx.imageSmoothingEnabled = false;
-            this.#change_view(0, 0, 0);
+            this.#update_view(() => {
+                this.#clamp_scale()
+                this.#clamp_offsets();
+            });
         });
         this.#resizeObserver.observe(this.#canvas);
     }
@@ -136,32 +150,41 @@ class AcrePlot extends HTMLElement {
 
     #update_scene_data(e) {
         this.#sceneState = e.detail.sceneState;
-        this.#change_view(0, 0, 0);
+        this.#update_view(() => {
+            this.#clamp_scale()
+            this.#clamp_offsets();
+        });
     }
 
-    #change_scale(sign) {
-        this.#change_view(0, 0, sign * ZOOM_STEP);
+    #zoom(dZoom) {
+        this.#update_view(() => {
+            const { anchorX, anchorY, direction } = dZoom;
+            const focusX = (anchorX - this.#xOffset) / this.#scale;
+            const focusY = (anchorY - this.#yOffset) / this.#scale;
+            this.#scale = this.#scale + direction * ZOOM_STEP
+            this.#clamp_scale();
+
+            this.#xOffset = anchorX - focusX * this.#scale;
+            this.#yOffset = anchorY - focusY * this.#scale;
+            this.#clamp_offsets();
+        });
     }
 
     #pan(dx, dy) {
-        this.#change_view(dx, dy, 0);
+        this.#update_view(() => {
+            this.#xOffset = this.#xOffset + dx;
+            this.#yOffset = this.#yOffset + dy;
+            this.#clamp_offsets();
+        })
     }
 
-    #change_view(dx, dy, ds) {
+    #update_view(change_view) {
         if (this.#sceneState == null) {
             return
         }
-        const min_offset = this.#canvas.width - this.#scale * this.#sceneState.plot_size;
-        const min_scale = this.#canvas.width / this.#sceneState.plot_size;
-        const max_scale = 20; // TODO figure out a good value for this
 
-        this.#scale = clamp(min_scale, max_scale, this.#scale + ds);
-        this.#xOffset = clamp(min_offset, 0, this.#xOffset + dx);
-        this.#yOffset = clamp(min_offset, 0, this.#yOffset + dy);
-        this.#draw();
-    }
+        change_view();
 
-    #draw() {
         requestAnimationFrame(() => {
             this.#ctx.drawImage(
                 this.#sceneState.bitmap,
@@ -170,6 +193,18 @@ class AcrePlot extends HTMLElement {
                 this.#sceneState.plot_size * this.#scale,
                 this.#sceneState.plot_size * this.#scale);
         });
+    }
+
+    #clamp_scale() {
+        const min_scale = this.#canvas.width / this.#sceneState.plot_size;
+        const max_scale = 20; // TODO figure out a good value for this
+        this.#scale = clamp(min_scale, max_scale, this.#scale);
+    }
+
+    #clamp_offsets() {
+        const min_offset = this.#canvas.width - this.#scale * this.#sceneState.plot_size;
+        this.#xOffset = clamp(min_offset, 0, this.#xOffset);
+        this.#yOffset = clamp(min_offset, 0, this.#yOffset);
     }
 
     #acre_clicked(canvasX, canvasY) {
@@ -181,6 +216,7 @@ class AcrePlot extends HTMLElement {
         this.internals.setFormValue(formData);
         this.internals.form?.requestSubmit();
     }
+
 }
 
 customElements.define("acre-plot", AcrePlot);
