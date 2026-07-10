@@ -78,11 +78,7 @@ class Interactor {
         // Mouse wheel zoom
         canvas.addEventListener('wheel', (e) => {
             e.preventDefault();
-            onZoom({
-                direction: Math.sign(e.deltaY),
-                anchorX: e.offsetX,
-                anchorY: e.offsetY,
-            });
+            onZoom(Math.sign(e.deltaY), e.offsetX, e.offsetY,);
         })
     }
 }
@@ -124,7 +120,7 @@ class AcrePlot extends HTMLElement {
             this.#canvas,
             (dx, dy) => this.#pan(dx, dy),
             (x, y) => this.#acre_clicked(x, y),
-            (dZoom) => this.#zoom(dZoom));
+            (direction, anchorX, anchorY) => this.#zoom(direction, anchorX, anchorY));
 
         this.appendChild(this.#canvas);
 
@@ -156,11 +152,11 @@ class AcrePlot extends HTMLElement {
         });
     }
 
-    #zoom(dZoom) {
+    #zoom(direction, anchorX, anchorY) {
         this.#update_view(() => {
-            const { anchorX, anchorY, direction } = dZoom;
             const focusX = (anchorX - this.#xOffset) / this.#scale;
             const focusY = (anchorY - this.#yOffset) / this.#scale;
+
             this.#scale = this.#scale + direction * ZOOM_STEP
             this.#clamp_scale();
 
