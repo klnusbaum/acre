@@ -132,7 +132,7 @@ class AcrePlot extends HTMLElement {
     }
 
     disconnectedCallback() {
-        this.#resizeObserver.unobserve(this);
+        this.#resizeObserver.unobserve(this.#canvas);
         document.removeEventListener(ACRE_PLOT_UPDATE_EVENT, this.#onRendered);
     }
 
