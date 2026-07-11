@@ -49,11 +49,8 @@ class Interactor {
                 const newDist = dist(new1, new2);
                 const anchorX = (new1.offsetX + new2.offsetX) / 2;
                 const anchorY = (new1.offsetY + new2.offsetY) / 2;
-                onZoom({
-                    direction: Math.sign(newDist - prevDist),
-                    anchorX: anchorX,
-                    anchorY: anchorY,
-                });
+
+                onZoom(Math.sign(newDist - prevDist), anchorX, anchorY);
             }
         });
         const removePointer = (e) => {
