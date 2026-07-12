@@ -1,6 +1,5 @@
 import { LATEST_PLOT_SCENE, ACRE_PLOT_UPDATE_EVENT } from "./acre_lib.js";
 const ZOOM_STEP = 0.1;
-const MAX_SCALE_TARGET_ACRES = 10;
 
 const clamp = (min, max, val) => Math.min(max, Math.max(min, val));
 const dist = (p1, p2) => Math.hypot(p1.pageX - p2.pageX, p1.pageY - p2.pageY);
@@ -192,6 +191,8 @@ class AcrePlot extends HTMLElement {
     }
 
     #clamp_scale() {
+        const MAX_SCALE_TARGET_ACRES = 10;
+
         const min_scale = this.#canvas.width / this.#sceneState.plot_size;
         const max_scale = this.#canvas.width / MAX_SCALE_TARGET_ACRES;
         this.#scale = clamp(min_scale, max_scale, this.#scale);
