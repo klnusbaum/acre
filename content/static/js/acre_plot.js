@@ -1,5 +1,4 @@
 import { LATEST_PLOT_SCENE, ACRE_PLOT_UPDATE_EVENT } from "./acre_lib.js";
-const ZOOM_STEP = 0.1;
 
 const clamp = (min, max, val) => Math.min(max, Math.max(min, val));
 const dist = (p1, p2) => Math.hypot(p1.pageX - p2.pageX, p1.pageY - p2.pageY);
@@ -85,6 +84,7 @@ class AcrePlot extends HTMLElement {
     #canvas;
     #ctx;
     #scale;
+    #scaleStep;
     #xOffset;
     #yOffset;
 
@@ -109,6 +109,7 @@ class AcrePlot extends HTMLElement {
         this.#ctx = this.#canvas.getContext("2d");
         this.#ctx.imageSmoothingEnabled = false;
         this.#scale = 0;
+        this.#scaleStep = 0;
         this.#xOffset = 0;
         this.#yOffset = 0;
         this.#sceneState = LATEST_PLOT_SCENE.sceneState;
@@ -156,7 +157,7 @@ class AcrePlot extends HTMLElement {
             const focusX = (anchorX - this.#xOffset) / this.#scale;
             const focusY = (anchorY - this.#yOffset) / this.#scale;
 
-            this.#scale = this.#scale + direction * ZOOM_STEP
+            this.#scale = this.#scale + (direction * this.#scaleStep);
             this.#clamp_scale();
 
             this.#xOffset = anchorX - focusX * this.#scale;
@@ -196,6 +197,7 @@ class AcrePlot extends HTMLElement {
         const min_scale = this.#canvas.width / this.#sceneState.plot_size;
         const max_scale = this.#canvas.width / MAX_SCALE_TARGET_ACRES;
         this.#scale = clamp(min_scale, max_scale, this.#scale);
+        this.#scaleStep = this.#scale / (max_scale - min_scale);
     }
 
     #clamp_offsets() {
